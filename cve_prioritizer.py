@@ -101,14 +101,14 @@ if __name__ == '__main__':
         epss_result = epss_check(i)
 
         if cisa_result:
-            print("Priority 1")
-        elif nist_result >= 5:
-            if epss_result >= 0.5:
+            print("Priority 1+")
+        elif nist_result >= 7.0:
+            if epss_result >= 0.2:
                 print("Priority 1")
             else:
                 print("Priority 2")
         else:
-            if epss_result >= 0.5:
+            if epss_result >= 0.2:
                 print("Priority 3")
             else:
                 print("Priority 4")
