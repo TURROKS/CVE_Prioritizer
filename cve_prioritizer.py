@@ -12,48 +12,103 @@ from scripts.constants import CISA_BASE_URL
 from scripts.constants import EPSS_URL
 from scripts.constants import NIST_BASE_URL
 
-# Enter the CVE ID that you want to check
-cve_id = "CVE-2021-34527"
 
 # Check EPSS for the CVE
-epss_url = EPSS_URL + f"?cve={cve_id}"
-epss_response = requests.get(epss_url)
-epss_status_code = epss_response.status_code
+def epss_check(cve_id):
+    epss_url = EPSS_URL + f"?cve={cve_id}"
+    epss_response = requests.get(epss_url)
+    epss_status_code = epss_response.status_code
 
-if epss_status_code == 200:
-    if epss_response.json().get("total") > 0:
-        print(f"{cve_id} is present in EPSS.")
+    if epss_status_code == 200:
+        if epss_response.json().get("total") > 0:
+            print(f"{cve_id} is present in EPSS.")
+            for cve in epss_response.json().get("data"):
+                epss = cve.get("epss")
+                percentile = int(float(cve.get("percentile"))*100)
+                print(f"EPSS: {epss}, {cve_id} is more likely to be exploited that {percentile}% of the known CVEs")
+                return float(epss)
+        else:
+            print(f"{cve_id} is not present in EPSS.")
+            return False
     else:
-        print(f"{cve_id} is not present in EPSS.")
-else:
-    print("Error connecting to EPSS")
+        print("Error connecting to EPSS")
+
 
 # Check NIST NVD for the CVE
-nvd_url = NIST_BASE_URL + f"?cveId={cve_id}"
-nvd_response = requests.get(nvd_url)
-nvd_status_code = nvd_response.status_code
+def nist_check(cve_id):
+    nvd_url = NIST_BASE_URL + f"?cveId={cve_id}"
+    nvd_response = requests.get(nvd_url)
+    nvd_status_code = nvd_response.status_code
 
-if nvd_status_code == 200:
-    if nvd_response.json().get("totalResults") > 0:
-        print(f"{cve_id} is present in NIST NVD.")
+    if nvd_status_code == 200:
+        if nvd_response.json().get("totalResults") > 0:
+            print(f"{cve_id} is present in NIST NVD.")
+            for id in nvd_response.json().get("vulnerabilities"):
+                if id.get("cve").get("metrics").get("cvssMetricV31"):
+                    for metric in id.get("cve").get("metrics").get("cvssMetricV31"):
+                        version = "Ver 3.1"
+                        cvss = metric.get("cvssData").get("baseScore")
+                        severity = metric.get("cvssData").get("baseSeverity")
+                        print(f"CVSS {version}, BaseScore: {cvss}, Severity: {severity}")
+                        return float(cvss)
+                elif id.get("cve").get("metrics").get("cvssMetricV30"):
+                    for metric in id.get("cve").get("metrics").get("cvssMetricV30"):
+                        version = "Ver 3.0"
+                        cvss = metric.get("cvssData").get("baseScore")
+                        severity = metric.get("cvssData").get("baseSeverity")
+                        print(f"CVSS {version}, BaseScore: {cvss}, Severity: {severity}")
+                        return float(cvss)
+                elif id.get("cve").get("metrics").get("cvssMetricV2"):
+                    for metric in id.get("cve").get("metrics").get("cvssMetricV2"):
+                        version = "Ver 2.0"
+                        cvss = metric.get("cvssData").get("baseScore")
+                        severity = metric.get("cvssData").get("baseSeverity")
+                        print(f"CVSS {version}, BaseScore: {cvss}, Severity: {severity}")
+                        return float(cvss)
+        else:
+            print(f"{cve_id} is not present in NIST NVD.")
+            return False
     else:
-        print(f"{cve_id} is not present in NIST NVD.")
-else:
-    print("Error connecting to NVD")
+        print("Error connecting to NVD")
+
 
 # Check CISA Known Exploited Vulnerabilities catalog for the CVE
+def cisa_check(cve_id):
+    cisa_response = requests.get(CISA_BASE_URL)
+    cisa_status_code = cisa_response.status_code
+    cisa_json = cisa_response.json()
 
-cisa_response = requests.get(CISA_BASE_URL)
-cisa_status_code = cisa_response.status_code
-cisa_json = cisa_response.json()
-
-if cisa_status_code == 200:
-    if cisa_json.get("count") > 0:
-        vulnerabilities = cisa_json.get("vulnerabilities")
-        for cve in vulnerabilities:
-            if cve_id == cve.get("cveID"):
-                print(f"{cve_id} is present in CISA KEV catalog.")
+    if cisa_status_code == 200:
+        if cisa_json.get("count") > 0:
+            vulnerabilities = cisa_json.get("vulnerabilities")
+            for cve in vulnerabilities:
+                if cve_id == cve.get("cveID"):
+                    print(f"{cve_id} is present in CISA KEV catalog.")
+                    return True
+            print(f"{cve_id} is not present in CISA KEV catalog.")
+            return False
     else:
-        print(f"{cve_id} is not present in CISA KEV catalog.")
-else:
-    print("Error connecting to CISA")
+        print("Error connecting to CISA")
+
+
+if __name__ == '__main__':
+
+    # Enter the CVE ID that you want to check
+    cves = ["CVE-2017-16885", "CVE-2020-29127", "CVE-2020-4657", "CVE-2019-0808", "CVE-2023-23397"]
+    for i in cves:
+        cisa_result = cisa_check(i)
+        nist_result = nist_check(i)
+        epss_result = epss_check(i)
+
+        if cisa_result:
+            print("Priority 1")
+        elif nist_result >= 5:
+            if epss_result >= 0.5:
+                print("Priority 1")
+            else:
+                print("Priority 2")
+        else:
+            if epss_result >= 0.5:
+                print("Priority 3")
+            else:
+                print("Priority 4")
