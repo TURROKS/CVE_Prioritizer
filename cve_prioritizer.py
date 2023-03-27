@@ -7,6 +7,7 @@ __maintainer__ = "Mario Rojas"
 __status__ = "Development"
 
 import requests
+import threading
 
 from scripts.constants import CISA_BASE_URL
 from scripts.constants import EPSS_URL
@@ -83,7 +84,7 @@ def cisa_check(cve_id):
             vulnerabilities = cisa_json.get("vulnerabilities")
             for cve in vulnerabilities:
                 if cve_id == cve.get("cveID"):
-                    print(f"{cve_id} is present in CISA KEV catalog.")
+                    # print(f"{cve_id} is present in CISA KEV catalog.")
                     return True
             print(f"{cve_id} is not present in CISA KEV catalog.")
             return False
@@ -91,24 +92,38 @@ def cisa_check(cve_id):
         print("Error connecting to CISA")
 
 
+def main(cve_id):
+
+    cisa_result = cisa_check(cve_id)
+    nist_result = nist_check(cve_id)
+    epss_result = epss_check(cve_id)
+
+    if cisa_result:
+        print("Priority 1+")
+    elif nist_result >= 7.0:
+        if epss_result >= 0.2:
+            print("Priority 1")
+        else:
+            print("Priority 2")
+    else:
+        if epss_result >= 0.2:
+            print("Priority 3")
+        else:
+            print("Priority 4")
+
+
 if __name__ == '__main__':
 
-    # Enter the CVE ID that you want to check
+    num_threads = 3
     cves = ["CVE-2017-16885", "CVE-2020-29127", "CVE-2020-4657", "CVE-2019-0808", "CVE-2023-23397"]
-    for i in cves:
-        cisa_result = cisa_check(i)
-        nist_result = nist_check(i)
-        epss_result = epss_check(i)
 
-        if cisa_result:
-            print("Priority 1+")
-        elif nist_result >= 7.0:
-            if epss_result >= 0.2:
-                print("Priority 1")
-            else:
-                print("Priority 2")
-        else:
-            if epss_result >= 0.2:
-                print("Priority 3")
-            else:
-                print("Priority 4")
+    threads = []
+
+    for cve in cves:
+
+        t = threading.Thread(target=main, args=(cve,))
+        threads.append(t)
+        t.start()
+
+    for t in threads:
+        t.join()
