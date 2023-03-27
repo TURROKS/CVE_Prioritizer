@@ -22,14 +22,14 @@ def epss_check(cve_id):
 
     if epss_status_code == 200:
         if epss_response.json().get("total") > 0:
-            print(f"{cve_id} is present in EPSS.")
+            # print(f"{cve_id} is present in EPSS.")
             for cve in epss_response.json().get("data"):
                 epss = cve.get("epss")
                 percentile = int(float(cve.get("percentile"))*100)
-                print(f"EPSS: {epss}, {cve_id} is more likely to be exploited that {percentile}% of the known CVEs")
+                # print(f"EPSS: {epss}, {cve_id} is more likely to be exploited that {percentile}% of the known CVEs")
                 return float(epss)
         else:
-            print(f"{cve_id} is not present in EPSS.")
+            # print(f"{cve_id} is not present in EPSS.")
             return False
     else:
         print("Error connecting to EPSS")
@@ -43,28 +43,28 @@ def nist_check(cve_id):
 
     if nvd_status_code == 200:
         if nvd_response.json().get("totalResults") > 0:
-            print(f"{cve_id} is present in NIST NVD.")
+            # print(f"{cve_id} is present in NIST NVD.")
             for id in nvd_response.json().get("vulnerabilities"):
                 if id.get("cve").get("metrics").get("cvssMetricV31"):
                     for metric in id.get("cve").get("metrics").get("cvssMetricV31"):
                         version = "Ver 3.1"
                         cvss = metric.get("cvssData").get("baseScore")
                         severity = metric.get("cvssData").get("baseSeverity")
-                        print(f"CVSS {version}, BaseScore: {cvss}, Severity: {severity}")
+                        # print(f"CVSS {version}, BaseScore: {cvss}, Severity: {severity}")
                         return float(cvss)
                 elif id.get("cve").get("metrics").get("cvssMetricV30"):
                     for metric in id.get("cve").get("metrics").get("cvssMetricV30"):
                         version = "Ver 3.0"
                         cvss = metric.get("cvssData").get("baseScore")
                         severity = metric.get("cvssData").get("baseSeverity")
-                        print(f"CVSS {version}, BaseScore: {cvss}, Severity: {severity}")
+                        # print(f"CVSS {version}, BaseScore: {cvss}, Severity: {severity}")
                         return float(cvss)
                 elif id.get("cve").get("metrics").get("cvssMetricV2"):
                     for metric in id.get("cve").get("metrics").get("cvssMetricV2"):
                         version = "Ver 2.0"
                         cvss = metric.get("cvssData").get("baseScore")
                         severity = metric.get("cvssData").get("baseSeverity")
-                        print(f"CVSS {version}, BaseScore: {cvss}, Severity: {severity}")
+                        # print(f"CVSS {version}, BaseScore: {cvss}, Severity: {severity}")
                         return float(cvss)
         else:
             print(f"{cve_id} is not present in NIST NVD.")
@@ -86,7 +86,7 @@ def cisa_check(cve_id):
                 if cve_id == cve.get("cveID"):
                     # print(f"{cve_id} is present in CISA KEV catalog.")
                     return True
-            print(f"{cve_id} is not present in CISA KEV catalog.")
+            # print(f"{cve_id} is not present in CISA KEV catalog.")
             return False
     else:
         print("Error connecting to CISA")
@@ -99,17 +99,17 @@ def main(cve_id):
     epss_result = epss_check(cve_id)
 
     if cisa_result:
-        print("Priority 1+")
+        print(f"{cve_id} Priority 1+")
     elif nist_result >= 7.0:
         if epss_result >= 0.2:
-            print("Priority 1")
+            print(f"{cve_id} Priority 1")
         else:
-            print("Priority 2")
+            print(f"{cve_id} Priority 2")
     else:
         if epss_result >= 0.2:
-            print("Priority 3")
+            print(f"{cve_id} Priority 3")
         else:
-            print("Priority 4")
+            print(f"{cve_id} Priority 4")
 
 
 if __name__ == '__main__':
