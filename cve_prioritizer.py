@@ -2,7 +2,7 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "0.1.1"
+__version__ = "1.0.0"
 __maintainer__ = "Mario Rojas"
 __status__ = "Development"
 
@@ -42,30 +42,33 @@ def nist_check(cve_id):
     nvd_status_code = nvd_response.status_code
 
     if nvd_status_code == 200:
+        cisakev = False
         if nvd_response.json().get("totalResults") > 0:
             # print(f"{cve_id} is present in NIST NVD.")
-            for id in nvd_response.json().get("vulnerabilities"):
-                if id.get("cve").get("metrics").get("cvssMetricV31"):
-                    for metric in id.get("cve").get("metrics").get("cvssMetricV31"):
+            for unique_cve in nvd_response.json().get("vulnerabilities"):
+                if unique_cve.get("cve").get("cisaExploitAdd"):
+                    cisakev = True
+                if unique_cve.get("cve").get("metrics").get("cvssMetricV31"):
+                    for metric in unique_cve.get("cve").get("metrics").get("cvssMetricV31"):
                         version = "Ver 3.1"
                         cvss = metric.get("cvssData").get("baseScore")
                         severity = metric.get("cvssData").get("baseSeverity")
                         # print(f"CVSS {version}, BaseScore: {cvss}, Severity: {severity}")
-                        return float(cvss)
-                elif id.get("cve").get("metrics").get("cvssMetricV30"):
-                    for metric in id.get("cve").get("metrics").get("cvssMetricV30"):
+                        return float(cvss), cisakev
+                elif unique_cve.get("cve").get("metrics").get("cvssMetricV30"):
+                    for metric in unique_cve.get("cve").get("metrics").get("cvssMetricV30"):
                         version = "Ver 3.0"
                         cvss = metric.get("cvssData").get("baseScore")
                         severity = metric.get("cvssData").get("baseSeverity")
                         # print(f"CVSS {version}, BaseScore: {cvss}, Severity: {severity}")
-                        return float(cvss)
-                elif id.get("cve").get("metrics").get("cvssMetricV2"):
-                    for metric in id.get("cve").get("metrics").get("cvssMetricV2"):
+                        return float(cvss), cisakev
+                elif unique_cve.get("cve").get("metrics").get("cvssMetricV2"):
+                    for metric in unique_cve.get("cve").get("metrics").get("cvssMetricV2"):
                         version = "Ver 2.0"
                         cvss = metric.get("cvssData").get("baseScore")
                         severity = metric.get("cvssData").get("baseSeverity")
                         # print(f"CVSS {version}, BaseScore: {cvss}, Severity: {severity}")
-                        return float(cvss)
+                        return float(cvss), cisakev
         else:
             print(f"{cve_id} is not present in NIST NVD.")
             return False
@@ -94,13 +97,13 @@ def cisa_check(cve_id):
 
 def main(cve_id):
 
-    cisa_result = cisa_check(cve_id)
+    # cisa_result = cisa_check(cve_id)
     nist_result = nist_check(cve_id)
     epss_result = epss_check(cve_id)
 
-    if cisa_result:
+    if nist_result[1] is True:
         print(f"{cve_id:<18}Priority 1+")
-    elif nist_result >= 7.0:
+    elif nist_result[0] >= 7.0:
         if epss_result >= 0.2:
             print(f"{cve_id:<18}Priority 1")
         else:
