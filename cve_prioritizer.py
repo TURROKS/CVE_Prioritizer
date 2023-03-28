@@ -2,7 +2,7 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __maintainer__ = "Mario Rojas"
 __status__ = "Development"
 
@@ -99,17 +99,17 @@ def main(cve_id):
     epss_result = epss_check(cve_id)
 
     if cisa_result:
-        print(f"{cve_id} Priority 1+")
+        print(f"{cve_id:<18}Priority 1+")
     elif nist_result >= 7.0:
         if epss_result >= 0.2:
-            print(f"{cve_id} Priority 1")
+            print(f"{cve_id:<18}Priority 1")
         else:
-            print(f"{cve_id} Priority 2")
+            print(f"{cve_id:<18}Priority 2")
     else:
         if epss_result >= 0.2:
-            print(f"{cve_id} Priority 3")
+            print(f"{cve_id:<18}Priority 3")
         else:
-            print(f"{cve_id} Priority 4")
+            print(f"{cve_id:<18}Priority 4")
 
 
 if __name__ == '__main__':
