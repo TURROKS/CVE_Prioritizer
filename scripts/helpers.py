@@ -68,8 +68,8 @@ def nist_check(cve_id):
                         # print(f"CVSS {version}, BaseScore: {cvss}, Severity: {severity}")
                         return float(cvss), cisakev
         else:
-            print(f"{cve_id} is not present in NIST NVD.")
+            print(f"{cve_id:<18} Not Found in NIST NVD.")
             return False
     else:
-        print("Error connecting to NVD")
+        print(f"{cve_id:<18} Error: Check Input or Internet Access")
 

@@ -48,7 +48,8 @@ def main(cve_id, cvss_score, epss_score):
             else:
                 print(f"{cve_id:<18}Priority 4")
     except TypeError:
-        print("Unable to fetch results, check your internet connection or Input")
+        pass
+        # print("Unable to fetch results, check your internet connection or Input")
 
 
 if __name__ == '__main__':
