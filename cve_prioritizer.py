@@ -11,7 +11,6 @@ import threading
 
 from scripts.helpers import nist_check
 from scripts.helpers import epss_check
-from scripts.helpers import list_parser
 
 # argparse setup
 parser = argparse.ArgumentParser(description="CVE Prioritizer tool", epilog='Happy Patching',
@@ -55,7 +54,7 @@ def main(cve_id, cvss_score, epss_score):
 if __name__ == '__main__':
 
     num_threads = 3
-    # cves = ["CVE-2017-16885", "CVE-2020-29127", "CVE-2020-4657", "CVE-2019-0808", "CVE-2023-23397"]
+
     cve_list = []
 
     threads = []
@@ -66,7 +65,6 @@ if __name__ == '__main__':
         cve_list.append(args.cve)
     elif args.list:
         cve_list = args.list
-        print(cve_list)
     elif args.file:
         cve_list = [line.rstrip() for line in args.file]
 
