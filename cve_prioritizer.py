@@ -35,19 +35,19 @@ def main(cve_id, cvss_score, epss_score):
     epss_result = epss_check(cve_id)
 
     try:
-        if nist_result[1] is True:
+        if nist_result.get("cisa_kev"):
             print(f"{cve_id:<18}Priority 1+")
-        elif nist_result[0] >= cvss_score:
-            if epss_result >= epss_score:
+        elif nist_result.get("cvss_baseScore") >= cvss_score:
+            if epss_result.get("epss") >= epss_score:
                 print(f"{cve_id:<18}Priority 1")
             else:
                 print(f"{cve_id:<18}Priority 2")
         else:
-            if epss_result >= epss_score:
+            if epss_result.get("epss") >= epss_score:
                 print(f"{cve_id:<18}Priority 3")
             else:
                 print(f"{cve_id:<18}Priority 4")
-    except TypeError:
+    except (TypeError, AttributeError):
         pass
         # print("Unable to fetch results, check your internet connection or Input")
 
@@ -64,10 +64,13 @@ if __name__ == '__main__':
 
     if args.cve:
         cve_list.append(args.cve)
+        print(f"{'CVE-ID':<18}Priority")
     elif args.list:
         cve_list = args.list
+        print(f"{'CVE-ID':<18}Priority")
     elif args.file:
         cve_list = [line.rstrip() for line in args.file]
+        print(f"{'CVE-ID':<18}Priority")
 
     for cve in cve_list:
 
