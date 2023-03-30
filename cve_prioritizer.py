@@ -9,6 +9,7 @@ __status__ = "Development"
 import argparse
 import threading
 
+from scripts.constants import LOGO
 from scripts.constants import SIMPLE_HEADER
 from scripts.constants import VERBOSE_HEADER
 from scripts.helpers import nist_check
@@ -36,6 +37,7 @@ def main(cve_id, cvss_score, epss_score, verbose_print):
     nist_result = nist_check(cve_id)
     epss_result = epss_check(cve_id)
 
+    # Output for verbose mode
     if verbose_print:
         try:
             if nist_result.get("cisa_kev"):
@@ -72,6 +74,7 @@ def main(cve_id, cvss_score, epss_score, verbose_print):
                           f"{nist_result.get('cvss_severity'):<12}FALSE")
         except (TypeError, AttributeError):
             pass
+    # output for simple mode
     else:
         try:
             if nist_result.get("cisa_kev"):
@@ -107,13 +110,13 @@ if __name__ == '__main__':
         verbose = True
     if args.cve:
         cve_list.append(args.cve)
-        print(header)
+        print(LOGO+header)
     elif args.list:
         cve_list = args.list
-        print(header)
+        print(LOGO+header)
     elif args.file:
         cve_list = [line.rstrip() for line in args.file]
-        print(header)
+        print(LOGO+header)
 
     for cve in cve_list:
 
