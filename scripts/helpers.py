@@ -70,4 +70,4 @@ def nist_check(cve_id):
         else:
             print(f"{cve_id:<18}Not Found in NIST NVD.")
     else:
-        print(f"{cve_id:<18}Error: Check Input or Internet Access")
+        print(f"{cve_id:<18}Error")
