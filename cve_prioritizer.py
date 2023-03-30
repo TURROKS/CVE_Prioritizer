@@ -26,7 +26,7 @@ parser.add_argument('-l', '--list', help='Space Separated List of CVE IDs', narg
 parser.add_argument('-n', '--cvss', type=float, help='CVSS Threshold (Default 7.0)', default=7.0, metavar='')
 parser.add_argument('-o', '--output', type=str, help='Output Filename', required=False, metavar='')
 parser.add_argument('-t', '--threads', type=str, help='Number of Threads', required=False, metavar='')
-parser.add_argument('-v', '--verbose', help='Verbose Mode', default=False, action='store_true')
+parser.add_argument('-v', '--verbose', help='Verbose Mode', action='store_true')
 
 # Global Arguments
 args = parser.parse_args()
