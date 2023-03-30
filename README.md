@@ -1,6 +1,7 @@
 # CVE Prioritizer Tool
 
-CVE_Prioritizer uses CVSS, EPSS and CISA's Known Exploited Vulnerabilities to help you prioritize vulnerability patching.
+CVE_Prioritizer uses [CVSS](https://nvd.nist.gov/vuln-metrics/cvss#), [EPSS](https://www.first.org/epss/data_stats) and 
+CISA's [Known Exploited Vulnerabilities](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) to help you prioritize vulnerability patching.
 
 ## Usage
 
@@ -40,6 +41,6 @@ summary results (CVE-ID + Priority), but you can use the -v or --verbose flags t
 - EPSS Score
 - CVSS Base Score
 - CVSS Severity
-- CISA KEV: TRUE OR FALSE
+- CISA KEV: TRUE or FALSE
 
 ![single v.png](misc%2Fsingle%20v.png)
