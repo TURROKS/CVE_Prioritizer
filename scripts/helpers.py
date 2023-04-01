@@ -13,6 +13,7 @@ __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
 
+# Collect EPSS Scores
 def epss_check(cve_id):
     epss_url = EPSS_URL + f"?cve={cve_id}"
     epss_response = requests.get(epss_url)
