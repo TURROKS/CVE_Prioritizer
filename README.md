@@ -33,17 +33,15 @@ priortitization.
 
 ![epss-v-cvss-5-16-thresh_sized.png](misc/epss-v-cvss-5-16-thresh_sized.png)
 
-Vulnerabilities in the **bottom left** represent those that have both a lower probability of being exploited, and would 
-incur a lower severity impact to the information system, and can therefore be **deprioritized**. Similarly, vulnerabilities 
-in the **upper left** quadrant may be more likely to be exploited, but, on their own, would not critically impact the 
+- Vulnerabilities in the **bottom left** represent those that have both a lower probability of being exploited, and would 
+incur a lower severity impact to the information system, and can therefore be **deprioritized**. 
+- Vulnerabilities in the **upper left** quadrant may be more likely to be exploited, but, on their own, would not critically impact the 
 information system. (Further research, however, should be conducted in order to better understand how these sorts of 
 vulnerabilities may be used in a chained attack.)
-
-Vulnerabilities in the **bottom right** represent those that, while may severely impact the information system, are much 
+- Vulnerabilities in the **bottom right** represent those that, while may severely impact the information system, are much 
 less likely to be exploited, relative to others, but should still be watched in the event that the threat landscape 
 changes.
-
-Vulnerabilities in the **upper right** quadrant, on the other hand, are the most critical kinds of vulnerabilities which 
+- Vulnerabilities in the **upper right** quadrant, on the other hand, are the most critical kinds of vulnerabilities which 
 are both more likely to be exploited, and could fully compromise the information system, and should therefore be 
 patched first.
 
@@ -81,9 +79,9 @@ Our approach will divide vulnerabilities into 5 possible categories or more spec
 **Note:** You can define your own thresholds when running the tool to tailor the results to your organization's risk 
 appetite.
 
-Now that we have explained the sources and our approach, lets take a look at how to use CVE_Prioritizer.
-
 ## Usage
+
+Now that we have explained the sources and our approach, lets take a look at how to use CVE_Prioritizer.
 
 ### Inputs
 
@@ -123,6 +121,6 @@ summary results (CVE-ID + Priority), but you can use the -v or --verbose flags t
 - CVSS Severity
 - CISA KEV: TRUE or FALSE
 
-![single v.png](misc/single v.png)
+![single v.png](misc%2Fsingle%20v.png)
 
 Happy Patching!
