@@ -48,21 +48,21 @@ def nist_check(cve_id):
                 # Collect CVSS Data
                 if unique_cve.get("cve").get("metrics").get("cvssMetricV31"):
                     for metric in unique_cve.get("cve").get("metrics").get("cvssMetricV31"):
-                        results = {"cvss_version": "Ver 3.1",
+                        results = {"cvss_version": "CVSS 3.1",
                                    "cvss_baseScore": float(metric.get("cvssData").get("baseScore")),
                                    "cvss_severity": metric.get("cvssData").get("baseSeverity"),
                                    "cisa_kev": cisa_kev}
                         return results
                 elif unique_cve.get("cve").get("metrics").get("cvssMetricV30"):
                     for metric in unique_cve.get("cve").get("metrics").get("cvssMetricV30"):
-                        results = {"cvss_version": "Ver 3.0",
+                        results = {"cvss_version": "CVSS 3.0",
                                    "cvss_baseScore": float(metric.get("cvssData").get("baseScore")),
                                    "cvss_severity": metric.get("cvssData").get("baseSeverity"),
                                    "cisa_kev": cisa_kev}
                         return results
                 elif unique_cve.get("cve").get("metrics").get("cvssMetricV2"):
                     for metric in unique_cve.get("cve").get("metrics").get("cvssMetricV2"):
-                        results = {"cvss_version": "Ver 2.0",
+                        results = {"cvss_version": "CVSS 2.0",
                                    "cvss_baseScore": float(metric.get("cvssData").get("baseScore")),
                                    "cvss_severity": metric.get("cvssData").get("baseSeverity"),
                                    "cisa_kev": cisa_kev}

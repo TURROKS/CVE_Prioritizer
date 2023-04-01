@@ -122,8 +122,9 @@ but you can use the -v or --verbose flags to get additional information such as:
 
 - EPSS Score
 - CVSS Base Score
+- CVSS Version
 - CVSS Severity
-- CISA KEV: TRUE or FALSE
+- CISA KEV Status (TRUE or FALSE)
 
 ![single v.png](misc/single_v.png)
 
