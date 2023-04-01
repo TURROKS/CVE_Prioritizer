@@ -1,4 +1,4 @@
-#!/usr/bin python
+#!/usr/bin/env python3
 # This file contains the functions that create the reports
 
 import requests
@@ -8,7 +8,7 @@ from scripts.constants import NIST_BASE_URL
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __maintainer__ = "Mario Rojas"
 __status__ = "Development"
 
