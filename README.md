@@ -91,7 +91,7 @@ CVE_Prioritizer allows you to provide the input CVEs on different ways.
 
 To check a single CVE you can use the -c or --cve flags
 
-`python3 cve_details.py -c CVE-2020-29127`
+`python3 cve_prioritizer.py -c CVE-2020-29127`
 
 ![single s.png](misc/single_s.png)
 
