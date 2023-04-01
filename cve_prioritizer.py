@@ -16,17 +16,17 @@ from scripts.helpers import nist_check
 from scripts.helpers import epss_check
 
 # argparse setup
-parser = argparse.ArgumentParser(description="CVE Prioritizer tool", epilog='Happy Patching',
+parser = argparse.ArgumentParser(description="CVE Prioritizer", epilog='Happy Patching',
                                  usage='cve_prioritizer.py -c CVE-XXXX-XXXX')
-parser.add_argument('-c', '--cve', type=str, help='Unique CVE ID', required=False, metavar='')
-parser.add_argument('-e', '--epss', type=float, help='EPSS Threshold (Default 0.2)', default=0.2, metavar='')
-parser.add_argument('-f', '--file', type=argparse.FileType('r'), help='TXT File with CVE IDs (One per Line)',
+parser.add_argument('-c', '--cve', type=str, help='Unique CVE-ID', required=False, metavar='')
+parser.add_argument('-e', '--epss', type=float, help='EPSS threshold (Default 0.2)', default=0.2, metavar='')
+parser.add_argument('-f', '--file', type=argparse.FileType('r'), help='TXT file with CVEs (One per Line)',
                     required=False, metavar='')
-parser.add_argument('-l', '--list', help='Space Separated List of CVE IDs', nargs='+', required=False, metavar='')
-parser.add_argument('-n', '--cvss', type=float, help='CVSS Threshold (Default 7.0)', default=7.0, metavar='')
-parser.add_argument('-o', '--output', type=str, help='Output Filename', required=False, metavar='')
-parser.add_argument('-t', '--threads', type=str, help='Number of Threads', required=False, metavar='')
-parser.add_argument('-v', '--verbose', help='Verbose Mode', action='store_true')
+parser.add_argument('-l', '--list', help='Space separated list of CVEs', nargs='+', required=False, metavar='')
+parser.add_argument('-n', '--cvss', type=float, help='CVSS threshold (Default 7.0)', default=7.0, metavar='')
+parser.add_argument('-o', '--output', type=str, help='Output filename', required=False, metavar='')
+parser.add_argument('-t', '--threads', type=str, help='Number of concurrent threads', required=False, metavar='')
+parser.add_argument('-v', '--verbose', help='Verbose mode', action='store_true')
 
 # Global Arguments
 args = parser.parse_args()
