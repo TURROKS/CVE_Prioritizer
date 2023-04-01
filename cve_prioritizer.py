@@ -44,29 +44,34 @@ def main(cve_id, cvss_score, epss_score, verbose_print):
                 print(f"{cve_id:<18}{'Priority 1+':<13}"
                       f"{epss_result.get('epss'):<9}"
                       f"{nist_result.get('cvss_baseScore'):<6}"
-                      f"{nist_result.get('cvss_severity'):<12}TRUE")
+                      f"{nist_result.get('cvss_version'):<10}"
+                      f"{nist_result.get('cvss_severity'):<10}TRUE")
             elif nist_result.get("cvss_baseScore") >= cvss_score:
                 if epss_result.get("epss") >= epss_score:
                     print(f"{cve_id:<18}{'Priority 1':<13}"
                           f"{epss_result.get('epss'):<9}"
                           f"{nist_result.get('cvss_baseScore'):<6}"
-                          f"{nist_result.get('cvss_severity'):<12}FALSE")
+                          f"{nist_result.get('cvss_version'):<10}"
+                          f"{nist_result.get('cvss_severity'):<10}FALSE")
                 else:
                     print(f"{cve_id:<18}{'Priority 2':<13}"
                           f"{epss_result.get('epss'):<9}"
                           f"{nist_result.get('cvss_baseScore'):<6}"
-                          f"{nist_result.get('cvss_severity'):<12}FALSE")
+                          f"{nist_result.get('cvss_version'):<10}"
+                          f"{nist_result.get('cvss_severity'):<10}FALSE")
             else:
                 if epss_result.get("epss") >= epss_score:
                     print(f"{cve_id:<18}{'Priority 3':<13}"
                           f"{epss_result.get('epss'):<9}"
                           f"{nist_result.get('cvss_baseScore'):<6}"
-                          f"{nist_result.get('cvss_severity'):<12}FALSE")
+                          f"{nist_result.get('cvss_version'):<10}"
+                          f"{nist_result.get('cvss_severity'):<10}FALSE")
                 else:
                     print(f"{cve_id:<18}{'Priority 4':<13}"
                           f"{epss_result.get('epss'):<9}"
                           f"{nist_result.get('cvss_baseScore'):<6}"
-                          f"{nist_result.get('cvss_severity'):<12}FALSE")
+                          f"{nist_result.get('cvss_version'):<10}"
+                          f"{nist_result.get('cvss_severity'):<10}FALSE")
         except (TypeError, AttributeError):
             pass
     # output for simple mode
