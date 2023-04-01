@@ -93,7 +93,7 @@ To check a single CVE you can use the -c or --cve flags
 
 `python3 cve_details.py -c CVE-2020-29127`
 
-![single s.png](misc/single%20s.png)
+![single s.png](misc/single_s.png)
 
 #### List of CVEs
 
@@ -114,13 +114,17 @@ You can additionally import a file with CVE IDs (One per line)
 ### Outputs
 
 You can decide how much information is provided by choosing verbose mode, Prioritizer will by default give you the 
-summary results (CVE-ID + Priority), but you can use the -v or --verbose flags to get additional information such as:
+summary results (CVE-ID + Priority)
+
+![single_s.png](misc/single_s.png)
+
+but you can use the -v or --verbose flags to get additional information such as:
 
 - EPSS Score
 - CVSS Base Score
 - CVSS Severity
 - CISA KEV: TRUE or FALSE
 
-![single v.png](misc%2Fsingle%20v.png)
+![single v.png](misc/single_v.png)
 
 Happy Patching!
