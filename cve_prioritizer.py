@@ -43,33 +43,28 @@ def main(cve_id, cvss_score, epss_score, verbose_print):
             if nist_result.get("cisa_kev"):
                 print(f"{cve_id:<18}{'Priority 1+':<13}"
                       f"{epss_result.get('epss'):<9}"
-                      # f"{epss_result.get('percentile'):<6}"
                       f"{nist_result.get('cvss_baseScore'):<6}"
                       f"{nist_result.get('cvss_severity'):<12}TRUE")
             elif nist_result.get("cvss_baseScore") >= cvss_score:
                 if epss_result.get("epss") >= epss_score:
                     print(f"{cve_id:<18}{'Priority 1':<13}"
                           f"{epss_result.get('epss'):<9}"
-                          # f"{epss_result.get('percentile'):<6}"
                           f"{nist_result.get('cvss_baseScore'):<6}"
                           f"{nist_result.get('cvss_severity'):<12}FALSE")
                 else:
                     print(f"{cve_id:<18}{'Priority 2':<13}"
                           f"{epss_result.get('epss'):<9}"
-                          # f"{epss_result.get('percentile'):<6}"
                           f"{nist_result.get('cvss_baseScore'):<6}"
                           f"{nist_result.get('cvss_severity'):<12}FALSE")
             else:
                 if epss_result.get("epss") >= epss_score:
                     print(f"{cve_id:<18}{'Priority 3':<13}"
                           f"{epss_result.get('epss'):<9}"
-                          # f"{epss_result.get('percentile'):<6}"
                           f"{nist_result.get('cvss_baseScore'):<6}"
                           f"{nist_result.get('cvss_severity'):<12}FALSE")
                 else:
                     print(f"{cve_id:<18}{'Priority 4':<13}"
                           f"{epss_result.get('epss'):<9}"
-                          # f"{epss_result.get('percentile'):<6}"
                           f"{nist_result.get('cvss_baseScore'):<6}"
                           f"{nist_result.get('cvss_severity'):<12}FALSE")
         except (TypeError, AttributeError):
@@ -91,19 +86,20 @@ def main(cve_id, cvss_score, epss_score, verbose_print):
                     print(f"{cve_id:<18}Priority 4")
         except (TypeError, AttributeError):
             pass
-            # print("Unable to fetch results, check your internet connection or Input")
 
 
 if __name__ == '__main__':
 
+    # standard args
     num_threads = 3
-
-    cve_list = []
     header = SIMPLE_HEADER
-    threads = []
     epss_threshold = args.epss
     cvss_threshold = args.cvss
     verbose = False
+
+    # Temporal lists
+    cve_list = []
+    threads = []
 
     if args.verbose:
         header = VERBOSE_HEADER
