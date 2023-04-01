@@ -223,7 +223,6 @@ if __name__ == '__main__':
     header = SIMPLE_HEADER
     epss_threshold = args.epss
     cvss_threshold = args.cvss
-    verbose = False
 
     # Temporal lists
     cve_list = []
@@ -231,7 +230,6 @@ if __name__ == '__main__':
 
     if args.verbose:
         header = VERBOSE_HEADER
-        verbose = True
     if args.cve:
         cve_list.append(args.cve)
         print(LOGO+header)
@@ -247,7 +245,7 @@ if __name__ == '__main__':
             output_file.write("cve_id,priority,epss,cvss,cvss_version,cvss_severity,cisa_kev"+"\n")
 
     for cve in cve_list:
-        t = threading.Thread(target=main, args=(cve, cvss_threshold, epss_threshold, verbose, args.output))
+        t = threading.Thread(target=main, args=(cve, cvss_threshold, epss_threshold, args.verbose, args.output))
         threads.append(t)
         t.start()
 

@@ -8,9 +8,8 @@ __status__ = "Production"
 
 SIMPLE_HEADER = f"{'CVE-ID':<18}Priority"+"\n"+("-"*30)
 VERBOSE_HEADER = f"{'CVE-ID':<18}{'PRIORITY':<13}{'EPSS':<9}{'CVSS':<6}{'VERSION':<10}{'SEVERITY':<10}CISA_KEV"+"\n"+("-"*75)
-EPSS_URL = "https://pi.first.org/data/v1/epss"
+EPSS_URL = "https://api.first.org/data/v1/epss"
 NIST_BASE_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
-CISA_BASE_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
 LOGO = """
 #    ______   ______                         
 #   / ___/ | / / __/                         
