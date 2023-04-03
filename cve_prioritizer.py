@@ -23,7 +23,7 @@ parser.add_argument('-e', '--epss', type=float, help='EPSS threshold (Default 0.
 parser.add_argument('-f', '--file', type=argparse.FileType('r'), help='TXT file with CVEs (One per Line)',
                     required=False, metavar='')
 parser.add_argument('-l', '--list', help='Space separated list of CVEs', nargs='+', required=False, metavar='')
-parser.add_argument('-n', '--cvss', type=float, help='CVSS threshold (Default 7.0)', default=7.0, metavar='')
+parser.add_argument('-n', '--cvss', type=float, help='CVSS threshold (Default 6.0)', default=6.0, metavar='')
 parser.add_argument('-o', '--output', type=str, help='Output filename', required=False, metavar='')
 parser.add_argument('-t', '--threads', type=str, help='Number of concurrent threads', required=False, metavar='')
 parser.add_argument('-v', '--verbose', help='Verbose mode', action='store_true')
