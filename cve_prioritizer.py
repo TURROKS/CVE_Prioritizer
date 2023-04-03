@@ -63,7 +63,7 @@ if __name__ == '__main__':
     for cve in cve_list:
 
         if not re.match("(CVE|cve-\d{4}-\d+$)", cve):
-            print("CVEs should be provided in the standard format CVE-0000-0000*")
+            print(f"{cve} Error: CVEs should be provided in the standard format CVE-0000-0000*")
         else:
             t = threading.Thread(target=worker, args=(cve.upper().strip(), cvss_threshold, epss_threshold, args.verbose,
                                                       args.output))
