@@ -7,6 +7,7 @@ __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
 import argparse
+import re
 import threading
 
 from scripts.constants import LOGO
@@ -60,9 +61,14 @@ if __name__ == '__main__':
             output_file.write("cve_id,priority,epss,cvss,cvss_version,cvss_severity,cisa_kev"+"\n")
 
     for cve in cve_list:
-        t = threading.Thread(target=worker, args=(cve, cvss_threshold, epss_threshold, args.verbose, args.output))
-        threads.append(t)
-        t.start()
+
+        if not re.match("(CVE|cve-\d{4}-\d+$)", cve):
+            print("CVEs should be provided in the standard format CVE-0000-0000*")
+        else:
+            t = threading.Thread(target=worker, args=(cve.upper().strip(), cvss_threshold, epss_threshold, args.verbose,
+                                                      args.output))
+            threads.append(t)
+            t.start()
 
     for t in threads:
         t.join()
