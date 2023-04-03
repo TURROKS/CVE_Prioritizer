@@ -13,14 +13,14 @@ The figure below shows the correlation between EPSS and CVSS scores based on dat
 produces prediction scores between 0 and 1 (0 and 100%) where higher scores suggest higher probability of exploit. 
 Each dot represents one or more vulnerabilities (CVEs). Some vulnerabilities are labeled for illustrative purposes.
 
-![epss-v-cvss-5-16.png](misc/epss-v-cvss-5-16.png)
+![cvss_comparison_scatter_density-1.png](misc%2Fcvss_comparison_scatter_density-1.png)
 
 First, observe how most vulnerabilities are concentrated near the bottom of the plot, and only a small percent of 
 vulnerabilities have EPSS scores above 50% (0.5). While there is some correlation between EPSS and CVSS scores, overall,
 this plot provides suggestive evidence that attackers are not only targeting vulnerabilities that produce the greatest 
 impact, or are necessarily easier to exploit (such as for example, an unauthenticated remote code execution).
 
-This is an important finding because it refutes a common assumption that attackers are only looking for — and using — 
+This is an important finding because it refutes a common assumption that attackers are only looking for (and using) 
 the most severe vulnerabilities. And so, how then can a network defender choose among these vulnerabilities when 
 deciding what to patch first?
 
@@ -56,13 +56,14 @@ We have taken FIRST's recommendation and modified the thresholds based on our ow
 
 1. We have **added CISA's Known Exploited Vulnerabilities** to the mix, so vulnerabilities are also prioritized based on 
 current and past exploitation.
-2. We moved the **CVSS Threshold to 7.0** to give a higher priority to High and Critical Severity vulnerabilities.
+2. We set the **CVSS Threshold to 6.0** as this the weighted average CVSS Score as per 
+[CVE Details](https://www.cvedetails.com/cvss-score-distribution.php).
 3. We moved the **EPSS Threshold to 0.2** as the majority of the vulnerabilities seem to lay below that 0.2 score, giving a
 higher relevance for the ones that go above the threshold.
 
 Below is a modified version of FIRST's recommendation with our own approach.
 
-![epss-v-cvss-5-16-thresh_new.png](misc/epss-v-cvss-5-16-thresh_new.png)
+![our_approach.png](misc%2Four_approach.png)
 
 ### The Result
 
