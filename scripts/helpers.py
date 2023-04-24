@@ -76,7 +76,7 @@ def nist_check(cve_id):
                                        "cisa_kev": cisa_kev}
                             return results
                     elif unique_cve.get("cve").get("vulnStatus") != "Analyzed":
-                        print(f"{cve_id:<18}{unique_cve.get('cve').get('vulnStatus')}")
+                        print(f"{cve_id:<18}NIST Status: {unique_cve.get('cve').get('vulnStatus')}")
             else:
                 print(f"{cve_id:<18}Not Found in NIST NVD.")
         else:
