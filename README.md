@@ -130,3 +130,5 @@ but you can use the -v or --verbose flags to get additional information such as:
 ![single v.png](misc/single_v.png)
 
 Happy Patching!
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/K3K4KOFV4)
