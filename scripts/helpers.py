@@ -75,7 +75,7 @@ def nist_check(cve_id):
                                        "cvss_severity": metric.get("cvssData").get("baseSeverity"),
                                        "cisa_kev": cisa_kev}
                             return results
-                    elif unique_cve.get("cve").get("vulnStatus") != "Analyzed":
+                    elif unique_cve.get("cve").get("vulnStatus") == "Awaiting Analysis":
                         print(f"{cve_id:<18}NIST Status: {unique_cve.get('cve').get('vulnStatus')}")
             else:
                 print(f"{cve_id:<18}Not Found in NIST NVD.")
