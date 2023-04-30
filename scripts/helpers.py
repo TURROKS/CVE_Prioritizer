@@ -269,3 +269,22 @@ def worker(cve_id, cvss_score, epss_score, verbose_print, save_output=None):
                         print(f"{cve_id:<18}Priority 4")
             except (TypeError, AttributeError):
                 pass
+
+
+def cve_trends():
+
+    cve_list = []
+
+    try:
+        html = requests.get("https://cvetrends.com/api/cves/7days")
+        parsed = html.json()
+        if html.status_code == 200:
+            for cve in parsed.get("data"):
+                cve_list.append(cve.get("cve"))
+        else:
+            return None
+    except ConnectionError:
+        print(f"Unable to connect to CVE Trends, Check your Internet connection or try again")
+        return None
+
+    return cve_list

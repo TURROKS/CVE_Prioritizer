@@ -7,6 +7,7 @@ __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
 import argparse
+import json
 import re
 import threading
 
@@ -14,19 +15,21 @@ from scripts.constants import LOGO
 from scripts.constants import SIMPLE_HEADER
 from scripts.constants import VERBOSE_HEADER
 from scripts.helpers import worker
+from scripts.helpers import cve_trends
 
 # argparse setup
 parser = argparse.ArgumentParser(description="CVE Prioritizer", epilog='Happy Patching',
                                  usage='cve_prioritizer.py -c CVE-XXXX-XXXX')
 parser.add_argument('-c', '--cve', type=str, help='Unique CVE-ID', required=False, metavar='')
+parser.add_argument('-d', '--demo', help='Top 10 CVEs of the last 7days from cvetrends.com', action='store_true')
 parser.add_argument('-e', '--epss', type=float, help='EPSS threshold (Default 0.2)', default=0.2, metavar='')
 parser.add_argument('-f', '--file', type=argparse.FileType('r'), help='TXT file with CVEs (One per Line)',
                     required=False, metavar='')
-parser.add_argument('-l', '--list', help='Space separated list of CVEs', nargs='+', required=False, metavar='')
 parser.add_argument('-n', '--cvss', type=float, help='CVSS threshold (Default 6.0)', default=6.0, metavar='')
 parser.add_argument('-o', '--output', type=str, help='Output filename', required=False, metavar='')
 parser.add_argument('-t', '--threads', type=str, help='Number of concurrent threads', required=False, metavar='')
 parser.add_argument('-v', '--verbose', help='Verbose mode', action='store_true')
+parser.add_argument('-l', '--list', help='Space separated list of CVEs', nargs='+', required=False, metavar='')
 
 # Global Arguments
 args = parser.parse_args()
@@ -35,7 +38,7 @@ args = parser.parse_args()
 if __name__ == '__main__':
 
     # standard args
-    num_threads = 3
+    num_threads = 5
     header = SIMPLE_HEADER
     epss_threshold = args.epss
     cvss_threshold = args.cvss
@@ -55,6 +58,14 @@ if __name__ == '__main__':
     elif args.file:
         cve_list = [line.rstrip() for line in args.file]
         print(LOGO+header)
+    elif args.demo:
+        try:
+            trends = cve_trends()
+            if trends:
+                cve_list = trends
+                print(LOGO + header)
+        except json.JSONDecodeError:
+            print(f"Unable to connect to CVE Trends")
 
     if args.output:
         with open(args.output, 'w') as output_file:
