@@ -129,6 +129,17 @@ but you can use the -v or --verbose flags to get additional information such as:
 
 ![single v.png](misc/single_v.png)
 
+### CVE Trends
+
+You can use the -d or --demo flags to get a list of the **Top 10 Trending CVEs of the last 7 days** from 
+[CVE Trends](https://cvetrends.com)
+
+![cve_trends_terminal.png](misc%2Fcve_trends_terminal.png)
+
+The information is fetched in real time from the CVE Trends website.
+
+![cve_trends_web.png](misc%2Fcve_trends_web.png)
+
 Happy Patching!
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/K3K4KOFV4)
