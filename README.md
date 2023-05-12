@@ -142,4 +142,7 @@ The information is fetched in real time from the CVE Trends website.
 
 Happy Patching!
 
+#### NVD API Notice: 
+This product uses the NVD API but is not endorsed or certified by the NVD.
+
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/K3K4KOFV4)
