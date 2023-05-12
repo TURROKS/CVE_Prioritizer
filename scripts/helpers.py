@@ -46,12 +46,12 @@ def epss_check(cve_id):
 def nist_check(cve_id):
 
     try:
-        NVD_Key = os.getenv('NIST_API')
+        nvd_key = os.getenv('NIST_API')
         nvd_url = NIST_BASE_URL + f"?cveId={cve_id}"
-        header = {'apiKey': f'{os.getenv("NIST_API")}'}
+        header = {'apiKey': f'{nvd_key}'}
 
         # Check if API has been provided
-        if NVD_Key:
+        if nvd_key:
             nvd_response = requests.get(nvd_url, headers=header)
         else:
             nvd_response = requests.get(nvd_url)
