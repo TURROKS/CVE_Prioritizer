@@ -77,12 +77,20 @@ Our approach will divide vulnerabilities into 5 possible categories or more spec
 | Priority 3   | CVEs in the Upper Left Quadrant  |
 | Priority 4   | CVEs in the Lower Left Quadrant  |
 
-**Note:** You can define your own thresholds when running the tool to tailor the results to your organization's risk 
-appetite.
+**Note:** You can define your own thresholds using --cvss and/or --epss when running the tool to tailor the results 
+to your organization's risk appetite.
 
 ## Usage
 
 Now that we have explained the sources and our approach, lets take a look at how to use CVE_Prioritizer.
+
+#### NIST NVD API
+It is highly recommended to request an API key from NIST NVD to avoid public rate limits that may result in errors, you
+can request a Key here https://nvd.nist.gov/developers/request-an-api-key
+
+Once you have obtained the key, simply add it to the .env file included in this project
+
+![api_key.png](misc%2Fapi_key.png)
 
 ### Inputs
 
