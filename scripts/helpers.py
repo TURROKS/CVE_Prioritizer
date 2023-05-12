@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 # This file contains the functions that create the reports
+import time
 
+import os
 import requests
+
+from dotenv import load_dotenv
 
 from scripts.constants import EPSS_URL
 from scripts.constants import NIST_BASE_URL
@@ -11,6 +15,8 @@ __license__ = "BSD 3-clause"
 __version__ = "1.1.0"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
+
+load_dotenv()
 
 
 # Collect EPSS Scores
@@ -40,8 +46,16 @@ def epss_check(cve_id):
 def nist_check(cve_id):
 
     try:
+        NVD_Key = os.getenv('NIST_API')
         nvd_url = NIST_BASE_URL + f"?cveId={cve_id}"
-        nvd_response = requests.get(nvd_url)
+        header = {'apiKey': f'{os.getenv("NIST_API")}'}
+
+        # Check if API has been provided
+        if NVD_Key:
+            nvd_response = requests.get(nvd_url, headers=header)
+        else:
+            nvd_response = requests.get(nvd_url)
+
         nvd_status_code = nvd_response.status_code
 
         if nvd_status_code == 200:
@@ -271,6 +285,7 @@ def worker(cve_id, cvss_score, epss_score, verbose_print, save_output=None):
                 pass
 
 
+# Function retrieves data from CVE Trends
 def cve_trends():
 
     cve_list = []
