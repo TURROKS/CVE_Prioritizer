@@ -1,8 +1,16 @@
 # CVE Prioritizer Tool
 
-CVE_Prioritizer uses [CVSS](https://nvd.nist.gov/vuln-metrics/cvss#), [EPSS](https://www.first.org/epss/data_stats) and 
-CISA's [Known Exploited Vulnerabilities](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) to help you 
-prioritize vulnerability patching.
+CVE_Prioritizer is a powerful tool that helps you prioritize vulnerability patching by combining 
+[CVSS](https://nvd.nist.gov/vuln-metrics/cvss#), [EPSS](https://www.first.org/epss/data_stats), and 
+CISA's [Known Exploited Vulnerabilities](https://www.cisa.gov/known-exploited-vulnerabilities-catalog). 
+It provides valuable insights into the likelihood of exploitation and the 
+potential impact of vulnerabilities on your information system.
+
+## Why Combine CVSS, EPSS, and CISA's KEV?
+
+CVE_Prioritizer leverages the correlation between CVSS and EPSS scores to enhance vulnerability remediation efforts. 
+While CVSS captures the fundamental properties of a vulnerability, EPSS offers data-driven threat information, 
+enabling you to better prioritize patching.
 
 ## Combining CVSS, EPSS and CISA's Kev
 
@@ -52,22 +60,13 @@ vulnerabilities has never before been possible.
 
 ## Our Approach
 
-We have taken FIRST's recommendation and modified the thresholds based on our own experience.
+We have refined the prioritization thresholds based on FIRST's recommendations and our own experience. Here's an overview:
 
-1. We have **added CISA's Known Exploited Vulnerabilities** to the mix, so vulnerabilities are also prioritized based on 
-current and past exploitation.
-2. We set the **CVSS Threshold to 6.0** as this the weighted average CVSS Score as per 
-[CVE Details](https://www.cvedetails.com/cvss-score-distribution.php).
-3. We moved the **EPSS Threshold to 0.2** as the majority of the vulnerabilities seem to lay below that 0.2 score, giving a
-higher relevance for the ones that go above the threshold.
+1. We **include CISA's Known Exploited Vulnerabilities**, giving priority to CVEs found in KEV.
+2. The **CVSS Threshold is set to 6.0**, representing the weighted average CVSS Score from [CVE Details](https://www.cvedetails.com/cvss-score-distribution.php).
+3. The **EPSS Threshold is set to 0.2**, focusing on vulnerabilities with higher relevance above this threshold.
 
-Below is a modified version of FIRST's recommendation with our own approach.
-
-![our_approach.png](misc%2Four_approach.png)
-
-### The Result
-
-Our approach will divide vulnerabilities into 5 possible categories or more specifically priorities:
+This approach categorizes vulnerabilities into five priority levels, allowing you to allocate resources more effectively.
 
 | **Priority** | **Description**                  |
 |--------------|----------------------------------|
@@ -77,28 +76,35 @@ Our approach will divide vulnerabilities into 5 possible categories or more spec
 | Priority 3   | CVEs in the Upper Left Quadrant  |
 | Priority 4   | CVEs in the Lower Left Quadrant  |
 
-**Note:** You can define your own thresholds using --cvss and/or --epss when running the tool to tailor the results 
+
+Below is a modified version of FIRST's recommendation after applying our own approach.
+
+![our_approach.png](misc%2Four_approach.png)
+
+**Note:** You can define your own thresholds when running the tool to tailor the results 
 to your organization's risk appetite.
 
 ## Usage
 
-Now that we have explained the sources and our approach, lets take a look at how to use CVE_Prioritizer.
+To use CVE_Prioritizer effectively, follow these steps:
 
-#### NIST NVD API
-It is highly recommended to request an API key from NIST NVD to avoid public rate limits that may result in errors, you
-can request a Key here https://nvd.nist.gov/developers/request-an-api-key
+1. Request an API key from NIST NVD to avoid public rate limits. You can obtain a key 
+[here](https://nvd.nist.gov/developers/request-an-api-key) and add it to the 
+included `.env` file.
 
-Once you have obtained the key, simply add it to the .env file included in this project
+2. Choose one of the following input methods:
+   - **Single CVE:** Use the `-c` or `--cve` flags followed by the CVE ID.
+   - **List of CVEs:** Provide a **space-separated** list of CVEs using the `-l` flag.
+   - **File with CVEs:** Import a file containing CVE IDs (one per line) using the `-f` flag.
+3. Tailor the output according to your needs:
+   - Use the `-v` or `--verbose` flags for detailed information, including EPSS Score, CVSS Base Score, CVSS Version, 
+   CVSS Severity, and CISA KEV status.
+   - Define custom thresholds using the `--cvss` and/or `--epss` flags to align the results with your organization's 
+   risk appetite.
 
-![api_key.png](misc%2Fapi_key.png)
-
-### Inputs
-
-CVE_Prioritizer allows you to provide the input CVEs on different ways.
+### Examples
 
 #### Single CVE
-
-To check a single CVE you can use the -c or --cve flags
 
 `python3 cve_prioritizer.py -c CVE-2020-29127`
 
@@ -106,15 +112,11 @@ To check a single CVE you can use the -c or --cve flags
 
 #### List of CVEs
 
-You can also provide a list of **space** separated CVEs
-
 `python3 cve_prioritizer.py -l CVE-2020-29127 CVE-2017-16885`
 
 ![list.png](misc/list.png)
 
 #### File with CVES
-
-You can additionally import a file with CVE IDs (One per line)
 
 `python3 cve_prioritizer.py -f ~\Desktop\CheckThisCVEs.txt`
 
@@ -122,12 +124,16 @@ You can additionally import a file with CVE IDs (One per line)
 
 ### Outputs
 
-You can decide how much information is provided by choosing verbose mode, Prioritizer will by default give you the 
-summary results (CVE-ID + Priority)
+CVE_Prioritizer provides flexible output options to suit your preferences. By default, it provides a summary of results,
+including the CVE-ID and its priority. However, you can enable verbose mode to obtain additional information.
+
+Here are the available output options:
+
+**Summary Results (default):** Provides a concise summary, including the CVE-ID and its priority.
 
 ![single_s.png](misc/single_s.png)
 
-but you can use the -v or --verbose flags to get additional information such as:
+**Verbose Mode:** Enables detailed output with the following information for each CVE:
 
 - EPSS Score
 - CVSS Base Score
@@ -139,18 +145,17 @@ but you can use the -v or --verbose flags to get additional information such as:
 
 ### CVE Trends
 
-You can use the -d or --demo flags to get a list of the **Top 10 Trending CVEs of the last 7 days** from 
-[CVE Trends](https://cvetrends.com)
+CVE Trends
+You can also utilize the `-d` or `--demo` flags to retrieve the T**op 10 Trending CVEs of the last 7 days** from CVE Trends. 
+This feature fetches real-time information from the [CVE Trends](https://cvetrends.com) website.
 
 ![cve_trends_terminal.png](misc%2Fcve_trends_terminal.png)
 
-The information is fetched in real time from the CVE Trends website.
-
-![cve_trends_web.png](misc%2Fcve_trends_web.png)
+The provided data gives you insights into the most trending CVEs, enabling you to stay informed about the latest vulnerabilities.
 
 Happy Patching!
 
-#### NVD API Notice: 
-This product uses the NVD API but is not endorsed or certified by the NVD.
-
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/K3K4KOFV4)
+
+#### NVD API Notice: 
+Please note that while this tool uses the NVD API, it is not endorsed or certified by the NVD.
