@@ -1,3 +1,4 @@
 setuptools
 requests
 python-dotenv
+termcolor

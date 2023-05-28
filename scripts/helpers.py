@@ -12,7 +12,7 @@ from scripts.constants import NIST_BASE_URL
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.2.1"
+__version__ = "1.3.0"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -117,7 +117,6 @@ def colored_print(priority):
 def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_version, cvss_severity, cisa_kev, verbose):
 
     color_priority = colored_print(priority)
-    stripped_len = len(priority)
 
     if verbose:
         print(f"{cve_id:<18}{color_priority:<22}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}{cisa_kev}")
