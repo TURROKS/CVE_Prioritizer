@@ -5,6 +5,7 @@ import os
 import requests
 
 from dotenv import load_dotenv
+from termcolor import colored
 
 from scripts.constants import EPSS_URL
 from scripts.constants import NIST_BASE_URL
@@ -99,13 +100,29 @@ def nist_check(cve_id):
         return None
 
 
+def colored_print(priority):
+    if priority == 'Priority 1+':
+        return colored(priority, 'red')
+    elif priority == 'Priority 1':
+        return colored(priority, 'light_red')
+    elif priority == 'Priority 2':
+        return colored(priority, 'light_yellow')
+    elif priority == 'Priority 3':
+        return colored(priority, 'yellow')
+    elif priority == 'Priority 4':
+        return colored(priority, 'green')
+
+
 # Function manages the outputs
 def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_version, cvss_severity, cisa_kev, verbose):
 
+    color_priority = colored_print(priority)
+    stripped_len = len(priority)
+
     if verbose:
-        print(f"{cve_id:<18}{priority:<13}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}{cisa_kev}")
+        print(f"{cve_id:<18}{color_priority:<22}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}{cisa_kev}")
     else:
-        print(f"{cve_id:<18}{priority:<13}")
+        print(f"{cve_id:<18}{color_priority:<22}")
     if working_file:
         working_file.write(f"{cve_id},{priority},{epss},{cvss_base_score},{cvss_version},{cvss_severity},{cisa_kev}\n")
 
