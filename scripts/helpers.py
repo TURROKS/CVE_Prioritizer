@@ -127,7 +127,7 @@ def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_
 
 
 # Main function
-def worker(cve_id, cvss_score, epss_score, verbose_print, save_output=None):
+def worker(cve_id, cvss_score, epss_score, verbose_print, sem, save_output=None):
     nist_result = nist_check(cve_id)
     epss_result = epss_check(cve_id)
 
@@ -163,6 +163,8 @@ def worker(cve_id, cvss_score, epss_score, verbose_print, save_output=None):
 
     if working_file:
         working_file.close()
+
+    sem.release()
 
 
 # Function retrieves data from CVE Trends

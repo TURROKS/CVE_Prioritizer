@@ -2,7 +2,7 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -18,6 +18,6 @@ LOGO = """
 #    / _ \____(_)__  ____(_) /_(_)__ ___ ____
 #   / ___/ __/ / _ \/ __/ / __/ /_ // -_) __/
 #  /_/  /_/ /_/\___/_/ /_/\__/_//__/\__/_/   
-#                                  BY TURROKS
+#  v1.3.0                          BY TURROKS
                                                   
 """""

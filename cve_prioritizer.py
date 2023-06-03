@@ -2,7 +2,7 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -11,6 +11,8 @@ import json
 import os
 import re
 import threading
+import time
+from threading import Semaphore
 
 from dotenv import load_dotenv
 
@@ -21,6 +23,7 @@ from scripts.helpers import worker
 from scripts.helpers import cve_trends
 
 load_dotenv()
+Throttle_msg = ""
 
 # argparse setup
 parser = argparse.ArgumentParser(description="CVE Prioritizer", epilog='Happy Patching',
@@ -32,7 +35,8 @@ parser.add_argument('-f', '--file', type=argparse.FileType('r'), help='TXT file 
                     required=False, metavar='')
 parser.add_argument('-n', '--cvss', type=float, help='CVSS threshold (Default 6.0)', default=6.0, metavar='')
 parser.add_argument('-o', '--output', type=str, help='Output filename', required=False, metavar='')
-parser.add_argument('-t', '--threads', type=str, help='Number of concurrent threads', required=False, metavar='')
+parser.add_argument('-t', '--threads', type=int, help='Number of concurrent threads', required=False, metavar='',
+                    default=100)
 parser.add_argument('-v', '--verbose', help='Verbose mode', action='store_true')
 parser.add_argument('-l', '--list', help='Space separated list of CVEs', nargs='+', required=False, metavar='')
 
@@ -46,6 +50,7 @@ if __name__ == '__main__':
     header = SIMPLE_HEADER
     epss_threshold = args.epss
     cvss_threshold = args.cvss
+    sem = Semaphore(args.threads)
 
     # Temporal lists
     cve_list = []
@@ -64,15 +69,19 @@ if __name__ == '__main__':
     elif args.list:
         cve_list = args.list
         if not os.getenv('NIST_API'):
-            print(LOGO + 'Warning: Using this tool without specifying a NIST API may result in errors'
-                  + '\n\n' + header)
+            if len(cve_list) > 75:
+                Throttle_msg = "Large number of CVEs detected, requests will be throttle to avoid API issues"
+            print(LOGO + Throttle_msg + '\n'
+                  + 'Warning: Using this tool without specifying a NIST API may result in errors' + '\n\n' + header)
         else:
             print(LOGO + header)
     elif args.file:
         cve_list = [line.rstrip() for line in args.file]
         if not os.getenv('NIST_API'):
-            print(LOGO + 'Warning: Using this tool without specifying a NIST API may result in errors'
-                  + '\n\n' + header)
+            if len(cve_list) > 75:
+                Throttle_msg = "Large number of CVEs detected, requests will be throttle to avoid API issues"
+            print(LOGO + Throttle_msg + '\n'
+                  + 'Warning: Using this tool without specifying a NIST API may result in errors' + '\n\n' + header)
         else:
             print(LOGO + header)
     elif args.demo:
@@ -94,13 +103,18 @@ if __name__ == '__main__':
             output_file.write("cve_id,priority,epss,cvss,cvss_version,cvss_severity,cisa_kev"+"\n")
 
     for cve in cve_list:
+        throttle = 1
+        if len(cve_list) > 75 and not os.getenv('NIST_API'):
+            throttle = 6
         if not re.match("(CVE|cve-\d{4}-\d+$)", cve):
             print(f"{cve} Error: CVEs should be provided in the standard format CVE-0000-0000*")
         else:
+            sem.acquire()
             t = threading.Thread(target=worker, args=(cve.upper().strip(), cvss_threshold, epss_threshold, args.verbose,
-                                                      args.output))
+                                                      sem, args.output))
             threads.append(t)
             t.start()
+            time.sleep(throttle)
 
     for t in threads:
         t.join()
