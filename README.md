@@ -12,6 +12,8 @@ CVE_Prioritizer leverages the correlation between CVSS and EPSS scores to enhanc
 While CVSS captures the fundamental properties of a vulnerability, EPSS offers data-driven threat information, 
 enabling you to better prioritize patching.
 
+![output.gif](misc/output.gif)
+
 ## Combining CVSS, EPSS and CISA's Kev
 
 The team at FIRST did an amazing job explaining why one would want to combine CVSS and EPSS in their 
@@ -21,7 +23,7 @@ The figure below shows the correlation between EPSS and CVSS scores based on dat
 produces prediction scores between 0 and 1 (0 and 100%) where higher scores suggest higher probability of exploit. 
 Each dot represents one or more vulnerabilities (CVEs). Some vulnerabilities are labeled for illustrative purposes.
 
-![cvss_comparison_scatter_density-1.png](misc%2Fcvss_comparison_scatter_density-1.png)
+![cvss_comparison_scatter_density-1.png](misc/cvss_comparison_scatter_density-1.png)
 
 First, observe how most vulnerabilities are concentrated near the bottom of the plot, and only a small percent of 
 vulnerabilities have EPSS scores above 50% (0.5). While there is some correlation between EPSS and CVSS scores, overall,
@@ -37,12 +39,12 @@ combination with data-driven threat information, like EPSS, in order to better p
 efforts.
 
 For the sake of discussion, consider the diagram below, which has been annotated to generally illustrate vulnerability 
-priortitization.
+prioritization.
 
 ![epss-v-cvss-5-16-thresh_sized.png](misc/epss-v-cvss-5-16-thresh_sized.png)
 
 - Vulnerabilities in the **bottom left** represent those that have both a lower probability of being exploited, and would 
-incur a lower severity impact to the information system, and can therefore be **deprioritized**. 
+incur a lower severity impact to the information system, and can therefore be **de-prioritized**. 
 - Vulnerabilities in the **upper left** quadrant may be more likely to be exploited, but, on their own, would not critically impact the 
 information system. (Further research, however, should be conducted in order to better understand how these sorts of 
 vulnerabilities may be used in a chained attack.)
@@ -79,7 +81,7 @@ This approach categorizes vulnerabilities into five priority levels, allowing yo
 
 Below is a modified version of FIRST's recommendation after applying our own approach.
 
-![our_approach.png](misc%2Four_approach.png)
+![our_approach.png](misc/our_approach.png)
 
 **Note:** You can define your own thresholds when running the tool to tailor the results 
 to your organization's risk appetite.
@@ -101,6 +103,8 @@ included `.env` file.
    CVSS Severity, and CISA KEV status.
    - Define custom thresholds using the `--cvss` and/or `--epss` flags to align the results with your organization's 
    risk appetite.
+   - Define the number of concurrent threads by using the `-t` or `--threads` flags, the default and recommended number
+   is 100 to avoid API rate limitations.  
 
 ### Examples
 
@@ -116,7 +120,7 @@ included `.env` file.
 
 ![list.png](misc/list.png)
 
-#### File with CVES
+#### File with CVEs
 
 `python3 cve_prioritizer.py -f ~\Desktop\CheckThisCVEs.txt`
 
@@ -143,13 +147,21 @@ Here are the available output options:
 
 ![single v.png](misc/single_v.png)
 
+**CSV File**
+
+You can save the results to a CSV file by using the `-o` or `--output` flags
+
+`python3 cve_prioritizer.py -c CVE-2020-4343 -o ~/Desktop/results.csv`
+
+This outputs the verbose results independently of the terminal output that you use.
+
 ### CVE Trends
 
 CVE Trends
 You can also utilize the `-d` or `--demo` flags to retrieve the T**op 10 Trending CVEs of the last 7 days** from CVE Trends. 
 This feature fetches real-time information from the [CVE Trends](https://cvetrends.com) website.
 
-![cve_trends_terminal.png](misc%2Fcve_trends_terminal.png)
+![cve_trends_terminal.png](misc/cve_trends_terminal.png)
 
 The provided data gives you insights into the most trending CVEs, enabling you to stay informed about the latest vulnerabilities.
 
