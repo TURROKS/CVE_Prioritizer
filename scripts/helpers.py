@@ -104,9 +104,9 @@ def colored_print(priority):
     if priority == 'Priority 1+':
         return colored(priority, 'red')
     elif priority == 'Priority 1':
-        return colored(priority, 'light_red')
+        return colored(priority, 'red')
     elif priority == 'Priority 2':
-        return colored(priority, 'light_yellow')
+        return colored(priority, 'yellow')
     elif priority == 'Priority 3':
         return colored(priority, 'yellow')
     elif priority == 'Priority 4':
