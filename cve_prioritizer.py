@@ -85,18 +85,19 @@ if __name__ == '__main__':
         else:
             print(LOGO + header)
     elif args.demo:
-        try:
-            trends = cve_trends()
-            if trends:
-                cve_list = trends
-                if not os.getenv('NIST_API'):
-                    print(
-                        LOGO + 'Warning: Using this tool without specifying a NIST API may result in errors'
-                        + '\n\n' + header)
-                else:
-                    print(LOGO + header)
-        except json.JSONDecodeError:
-            print(f"Unable to connect to CVE Trends")
+        print("Unfortunately, due to Twitter’s recent API change, the CVETrends is currently unable to run.")
+        # try:
+        #     trends = cve_trends()
+        #     if trends:
+        #         cve_list = trends
+        #         if not os.getenv('NIST_API'):
+        #             print(
+        #                 LOGO + 'Warning: Using this tool without specifying a NIST API may result in errors'
+        #                 + '\n\n' + header)
+        #         else:
+        #             print(LOGO + header)
+        # except json.JSONDecodeError:
+        #     print(f"Unable to connect to CVE Trends")
 
     if args.output:
         with open(args.output, 'w') as output_file:
