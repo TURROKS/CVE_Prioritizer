@@ -94,7 +94,7 @@ def nist_check(cve_id):
             else:
                 print(f"{cve_id:<18}Not Found in NIST NVD.")
         else:
-            print(f"{cve_id:<18}Error")
+            print(f"{cve_id:<18}Error code {nvd_status_code}")
     except requests.exceptions.ConnectionError:
         print(f"Unable to connect to NIST NVD, Check your Internet connection or try again")
         return None
