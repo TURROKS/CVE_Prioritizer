@@ -86,7 +86,7 @@ def nist_check(cve_id):
                         for metric in unique_cve.get("cve").get("metrics").get("cvssMetricV2"):
                             results = {"cvss_version": "CVSS 2.0",
                                        "cvss_baseScore": float(metric.get("cvssData").get("baseScore")),
-                                       "cvss_severity": metric.get("cvssData").get("baseSeverity"),
+                                       "cvss_severity": metric.get("baseSeverity"),
                                        "cisa_kev": cisa_kev}
                             return results
                     elif unique_cve.get("cve").get("vulnStatus") == "Awaiting Analysis":
