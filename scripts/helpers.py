@@ -12,7 +12,7 @@ from scripts.constants import NIST_BASE_URL
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -67,32 +67,41 @@ def nist_check(cve_id):
                     if unique_cve.get("cve").get("cisaExploitAdd"):
                         cisa_kev = True
 
+                    try:
+                        cpe = unique_cve.get("cve").get("configurations")[0].get("nodes")[0].get("cpeMatch")[0].get("criteria")
+                    except TypeError:
+                        cpe = 'cpe:2.3:::::::::::'
+
                     # Collect CVSS Data
                     if unique_cve.get("cve").get("metrics").get("cvssMetricV31"):
                         for metric in unique_cve.get("cve").get("metrics").get("cvssMetricV31"):
                             results = {"cvss_version": "CVSS 3.1",
                                        "cvss_baseScore": float(metric.get("cvssData").get("baseScore")),
                                        "cvss_severity": metric.get("cvssData").get("baseSeverity"),
-                                       "cisa_kev": cisa_kev}
+                                       "cisa_kev": cisa_kev,
+                                       "cpe": cpe}
                             return results
                     elif unique_cve.get("cve").get("metrics").get("cvssMetricV30"):
                         for metric in unique_cve.get("cve").get("metrics").get("cvssMetricV30"):
                             results = {"cvss_version": "CVSS 3.0",
                                        "cvss_baseScore": float(metric.get("cvssData").get("baseScore")),
                                        "cvss_severity": metric.get("cvssData").get("baseSeverity"),
-                                       "cisa_kev": cisa_kev}
+                                       "cisa_kev": cisa_kev,
+                                       "cpe": cpe}
                             return results
                     elif unique_cve.get("cve").get("metrics").get("cvssMetricV2"):
                         for metric in unique_cve.get("cve").get("metrics").get("cvssMetricV2"):
                             results = {"cvss_version": "CVSS 2.0",
                                        "cvss_baseScore": float(metric.get("cvssData").get("baseScore")),
                                        "cvss_severity": metric.get("baseSeverity"),
-                                       "cisa_kev": cisa_kev}
+                                       "cisa_kev": cisa_kev,
+                                       "cpe": cpe}
                             return results
                     elif unique_cve.get("cve").get("vulnStatus") == "Awaiting Analysis":
                         print(f"{cve_id:<18}NIST Status: {unique_cve.get('cve').get('vulnStatus')}")
             else:
                 print(f"{cve_id:<18}Not Found in NIST NVD.")
+                exit()
         else:
             print(f"{cve_id:<18}Error code {nvd_status_code}")
     except requests.exceptions.ConnectionError:
@@ -113,17 +122,48 @@ def colored_print(priority):
         return colored(priority, 'green')
 
 
+# Extract CVE product details
+def parse_cpe(cpe_str):
+    """
+    Parses a CPE URI string and extracts the vendor, product, and version.
+    Assumes the CPE string is in the format: cpe:/a:vendor:product:version:update:edition:language
+    """
+    # Splitting the CPE string into components
+    parts = cpe_str.split(':')
+
+    # Extracting vendor, product, and version
+    vendor = parts[3] if len(parts) > 2 else None
+    product = parts[4] if len(parts) > 3 else None
+
+    return vendor, product
+
+
+# Truncate for printing
+def truncate_string(input_string, max_length):
+    """
+    Truncates a string to a maximum length, appending an ellipsis if the string is too long.
+    """
+    if len(input_string) > max_length:
+        return input_string[:max_length - 3] + "..."
+    else:
+        return input_string
+
+
 # Function manages the outputs
-def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_version, cvss_severity, cisa_kev, verbose):
+def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_version, cvss_severity, cisa_kev,
+                    verbose, cpe):
 
     color_priority = colored_print(priority)
+    vendor, product = parse_cpe(cpe)
 
     if verbose:
-        print(f"{cve_id:<18}{color_priority:<22}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}{cisa_kev}")
+        print(f"{cve_id:<18}{color_priority:<22}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}"
+              f"{cisa_kev:<10}{truncate_string(vendor,15):<18}{truncate_string(product, 20)}")
     else:
         print(f"{cve_id:<18}{color_priority:<22}")
     if working_file:
-        working_file.write(f"{cve_id},{priority},{epss},{cvss_base_score},{cvss_version},{cvss_severity},{cisa_kev}\n")
+        working_file.write(f"{cve_id},{priority},{epss},{cvss_base_score},{cvss_version},{cvss_severity},"
+                           f"{cisa_kev},{cpe},{vendor},{product}\n")
 
 
 # Main function
@@ -139,25 +179,25 @@ def worker(cve_id, cvss_score, epss_score, verbose_print, sem, save_output=None)
         if nist_result.get("cisa_kev"):
             print_and_write(working_file, cve_id, 'Priority 1+', epss_result.get('epss'),
                             nist_result.get('cvss_baseScore'), nist_result.get('cvss_version'),
-                            nist_result.get('cvss_severity'), 'TRUE', verbose_print)
+                            nist_result.get('cvss_severity'), 'TRUE', verbose_print, nist_result.get('cpe'))
         elif nist_result.get("cvss_baseScore") >= cvss_score:
             if epss_result.get("epss") >= epss_score:
                 print_and_write(working_file, cve_id, 'Priority 1', epss_result.get('epss'),
                                 nist_result.get('cvss_baseScore'), nist_result.get('cvss_version'),
-                                nist_result.get('cvss_severity'), 'FALSE', verbose_print)
+                                nist_result.get('cvss_severity'), 'FALSE', verbose_print, nist_result.get('cpe'))
             else:
                 print_and_write(working_file, cve_id, 'Priority 2', epss_result.get('epss'),
                                 nist_result.get('cvss_baseScore'), nist_result.get('cvss_version'),
-                                nist_result.get('cvss_severity'), 'FALSE', verbose_print)
+                                nist_result.get('cvss_severity'), 'FALSE', verbose_print, nist_result.get('cpe'))
         else:
             if epss_result.get("epss") >= epss_score:
                 print_and_write(working_file, cve_id, 'Priority 3', epss_result.get('epss'),
                                 nist_result.get('cvss_baseScore'), nist_result.get('cvss_version'),
-                                nist_result.get('cvss_severity'), 'FALSE', verbose_print)
+                                nist_result.get('cvss_severity'), 'FALSE', verbose_print, nist_result.get('cpe'))
             else:
                 print_and_write(working_file, cve_id, 'Priority 4', epss_result.get('epss'),
                                 nist_result.get('cvss_baseScore'), nist_result.get('cvss_version'),
-                                nist_result.get('cvss_severity'), 'FALSE', verbose_print)
+                                nist_result.get('cvss_severity'), 'FALSE', verbose_print, nist_result.get('cpe'))
     except (TypeError, AttributeError):
         pass
 

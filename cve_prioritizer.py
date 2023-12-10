@@ -2,7 +2,7 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
     if args.output:
         with open(args.output, 'w') as output_file:
-            output_file.write("cve_id,priority,epss,cvss,cvss_version,cvss_severity,cisa_kev"+"\n")
+            output_file.write("cve_id,priority,epss,cvss,cvss_version,cvss_severity,cisa_kev,cpe,vendor,product"+"\n")
 
     for cve in cve_list:
         throttle = 1
