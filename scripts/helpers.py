@@ -34,7 +34,7 @@ def epss_check(cve_id):
                                "percentile": int(float(cve.get("percentile"))*100)}
                     return results
             else:
-                return False
+                print(f"{cve_id:<18}Not Found in EPSS.")
         else:
             print("Error connecting to EPSS")
     except requests.exceptions.ConnectionError:
