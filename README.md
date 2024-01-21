@@ -86,6 +86,16 @@ Below is a modified version of FIRST's recommendation after applying our own app
 **Note:** You can define your own thresholds when running the tool to tailor the results 
 to your organization's risk appetite.
 
+## Install
+- [Python 3](https://www.python.org/downloads/)
+- [Git](https://git-scm.com/downloads)
+  
+```
+git clone https://github.com/TURROKS/CVE_Prioritizer.git
+cd ./CVE_Prioritizer/
+pip3 install -r requirements.txt
+```
+
 ## Usage
 
 To use CVE_Prioritizer effectively, follow these steps:
@@ -94,11 +104,16 @@ To use CVE_Prioritizer effectively, follow these steps:
 [here](https://nvd.nist.gov/developers/request-an-api-key) and add it to the 
 included `.env` file.
 
-2. Choose one of the following input methods:
+**One line terminal:**
+
+```
+sed -i 's/NIST_API=/NIST_API=NISTAPIKEY /' .env
+```
+3. Choose one of the following input methods:
    - **Single CVE:** Use the `-c` or `--cve` flags followed by the CVE ID.
    - **List of CVEs:** Provide a **space-separated** list of CVEs using the `-l` flag.
    - **File with CVEs:** Import a file containing CVE IDs (one per line) using the `-f` flag.
-3. Tailor the output according to your needs:
+4. Tailor the output according to your needs:
    - Use the `-v` or `--verbose` flags for detailed information, including EPSS Score, CVSS Base Score, CVSS Version, 
    CVSS Severity, and CISA KEV status.
    - Define custom thresholds using the `--cvss` and/or `--epss` flags to align the results with your organization's 
@@ -109,20 +124,25 @@ included `.env` file.
 ### Examples
 
 #### Single CVE
-
-`python3 cve_prioritizer.py -c CVE-2020-29127`
+```
+python3 cve_prioritizer.py -c CVE-2020-29127
+```
 
 ![single s.png](misc/single_s.png)
 
 #### List of CVEs
 
-`python3 cve_prioritizer.py -l CVE-2020-29127 CVE-2017-16885`
+```
+python3 cve_prioritizer.py -l CVE-2020-29127 CVE-2017-16885
+```
 
 ![list.png](misc/list.png)
 
 #### File with CVEs
 
-`python3 cve_prioritizer.py -f ~\Desktop\CheckThisCVEs.txt`
+```
+python3 cve_prioritizer.py -f ~\Desktop\CheckThisCVEs.txt
+```
 
 ![file.png](misc/file.png)
 
@@ -151,7 +171,9 @@ Here are the available output options:
 
 You can save the results to a CSV file by using the `-o` or `--output` flags
 
-`python3 cve_prioritizer.py -c CVE-2020-4343 -o ~/Desktop/results.csv`
+```
+python3 cve_prioritizer.py -c CVE-2020-4343 -o ~/Desktop/results.csv
+```
 
 This outputs the verbose results independently of the terminal output that you use.
 
