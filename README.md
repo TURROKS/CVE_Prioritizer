@@ -109,11 +109,11 @@ included `.env` file.
 ```
 sed -i 's/NIST_API=/NIST_API=NISTAPIKEY /' .env
 ```
-3. Choose one of the following input methods:
+2. Choose one of the following input methods:
    - **Single CVE:** Use the `-c` or `--cve` flags followed by the CVE ID.
    - **List of CVEs:** Provide a **space-separated** list of CVEs using the `-l` flag.
    - **File with CVEs:** Import a file containing CVE IDs (one per line) using the `-f` flag.
-4. Tailor the output according to your needs:
+3. Tailor the output according to your needs:
    - Use the `-v` or `--verbose` flags for detailed information, including EPSS Score, CVSS Base Score, CVSS Version, 
    CVSS Severity, and CISA KEV status.
    - Define custom thresholds using the `--cvss` and/or `--epss` flags to align the results with your organization's 
