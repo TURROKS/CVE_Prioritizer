@@ -12,7 +12,6 @@ from scripts.constants import NIST_BASE_URL
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.3.0"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
