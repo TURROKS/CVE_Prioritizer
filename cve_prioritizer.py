@@ -107,7 +107,7 @@ if __name__ == '__main__':
         throttle = 1
         if len(cve_list) > 75 and not os.getenv('NIST_API'):
             throttle = 6
-        if not re.match("(CVE|cve-\d{4}-\d+$)", cve):
+        if not re.match(r"(CVE|cve-\d{4}-\d+$)", cve):
             print(f"{cve} Error: CVEs should be provided in the standard format CVE-0000-0000*")
         else:
             sem.acquire()
