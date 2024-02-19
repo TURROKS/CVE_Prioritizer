@@ -11,7 +11,7 @@ VERBOSE_HEADER = (f"{'CVE-ID':<18}{'PRIORITY':<13}{'EPSS':<9}{'CVSS':<6}{'VERSIO
                   f"{'VENDOR':<18}PRODUCT")+"\n"+("-"*115)
 EPSS_URL = "https://api.first.org/data/v1/epss"
 NIST_BASE_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
-LOGO = """
+LOGO = r"""
 #    ______   ______                         
 #   / ___/ | / / __/                         
 #  / /__ | |/ / _/                           
