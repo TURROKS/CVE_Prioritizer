@@ -7,7 +7,6 @@ __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
 import argparse
-import json
 import os
 import re
 import threading
@@ -20,7 +19,6 @@ from scripts.constants import LOGO
 from scripts.constants import SIMPLE_HEADER
 from scripts.constants import VERBOSE_HEADER
 from scripts.helpers import worker
-from scripts.helpers import cve_trends
 
 load_dotenv()
 Throttle_msg = ""
@@ -39,10 +37,11 @@ parser.add_argument('-t', '--threads', type=int, help='Number of concurrent thre
                     default=100)
 parser.add_argument('-v', '--verbose', help='Verbose mode', action='store_true')
 parser.add_argument('-l', '--list', help='Space separated list of CVEs', nargs='+', required=False, metavar='')
+parser.add_argument('-nc', '--no-color', help='Disable Colored Output', action='store_true')
 
 # Global Arguments
 args = parser.parse_args()
-
+color_enabled = not args.no_color
 
 if __name__ == '__main__':
 
@@ -112,7 +111,7 @@ if __name__ == '__main__':
         else:
             sem.acquire()
             t = threading.Thread(target=worker, args=(cve.upper().strip(), cvss_threshold, epss_threshold, args.verbose,
-                                                      sem, args.output))
+                                                      sem, color_enabled, args.output))
             threads.append(t)
             t.start()
             time.sleep(throttle)

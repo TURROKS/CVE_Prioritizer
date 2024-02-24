@@ -151,23 +151,30 @@ def truncate_string(input_string, max_length):
 
 # Function manages the outputs
 def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_version, cvss_severity, cisa_kev,
-                    verbose, cpe):
+                    verbose, cpe, no_color):
 
     color_priority = colored_print(priority)
     vendor, product = parse_cpe(cpe)
 
     if verbose:
-        print(f"{cve_id:<18}{color_priority:<22}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}"
-              f"{cisa_kev:<10}{truncate_string(vendor,15):<18}{truncate_string(product, 20)}")
+        if no_color:
+            print(f"{cve_id:<18}{color_priority:<22}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}"
+                  f"{cisa_kev:<10}{truncate_string(vendor,15):<18}{truncate_string(product, 20)}")
+        else:
+            print(f"{cve_id:<18}{priority:<13}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}"
+                  f"{cisa_kev:<10}{truncate_string(vendor, 15):<18}{truncate_string(product, 20)}")
     else:
-        print(f"{cve_id:<18}{color_priority:<22}")
+        if no_color:
+            print(f"{cve_id:<18}{color_priority:<22}")
+        else:
+            print(f"{cve_id:<18}{priority:<13}")
     if working_file:
         working_file.write(f"{cve_id},{priority},{epss},{cvss_base_score},{cvss_version},{cvss_severity},"
                            f"{cisa_kev},{cpe},{vendor},{product}\n")
 
 
 # Main function
-def worker(cve_id, cvss_score, epss_score, verbose_print, sem, save_output=None):
+def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, save_output=None):
     nist_result = nist_check(cve_id)
     epss_result = epss_check(cve_id)
 
@@ -179,25 +186,30 @@ def worker(cve_id, cvss_score, epss_score, verbose_print, sem, save_output=None)
         if nist_result.get("cisa_kev"):
             print_and_write(working_file, cve_id, 'Priority 1+', epss_result.get('epss'),
                             nist_result.get('cvss_baseScore'), nist_result.get('cvss_version'),
-                            nist_result.get('cvss_severity'), 'TRUE', verbose_print, nist_result.get('cpe'))
+                            nist_result.get('cvss_severity'), 'TRUE', verbose_print, nist_result.get('cpe'),
+                            colored_output)
         elif nist_result.get("cvss_baseScore") >= cvss_score:
             if epss_result.get("epss") >= epss_score:
                 print_and_write(working_file, cve_id, 'Priority 1', epss_result.get('epss'),
                                 nist_result.get('cvss_baseScore'), nist_result.get('cvss_version'),
-                                nist_result.get('cvss_severity'), 'FALSE', verbose_print, nist_result.get('cpe'))
+                                nist_result.get('cvss_severity'), 'FALSE', verbose_print, nist_result.get('cpe'),
+                                colored_output)
             else:
                 print_and_write(working_file, cve_id, 'Priority 2', epss_result.get('epss'),
                                 nist_result.get('cvss_baseScore'), nist_result.get('cvss_version'),
-                                nist_result.get('cvss_severity'), 'FALSE', verbose_print, nist_result.get('cpe'))
+                                nist_result.get('cvss_severity'), 'FALSE', verbose_print, nist_result.get('cpe'),
+                                colored_output)
         else:
             if epss_result.get("epss") >= epss_score:
                 print_and_write(working_file, cve_id, 'Priority 3', epss_result.get('epss'),
                                 nist_result.get('cvss_baseScore'), nist_result.get('cvss_version'),
-                                nist_result.get('cvss_severity'), 'FALSE', verbose_print, nist_result.get('cpe'))
+                                nist_result.get('cvss_severity'), 'FALSE', verbose_print, nist_result.get('cpe'),
+                                colored_output)
             else:
                 print_and_write(working_file, cve_id, 'Priority 4', epss_result.get('epss'),
                                 nist_result.get('cvss_baseScore'), nist_result.get('cvss_version'),
-                                nist_result.get('cvss_severity'), 'FALSE', verbose_print, nist_result.get('cpe'))
+                                nist_result.get('cvss_severity'), 'FALSE', verbose_print, nist_result.get('cpe'),
+                                colored_output)
     except (TypeError, AttributeError):
         pass
 
