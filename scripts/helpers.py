@@ -43,10 +43,11 @@ def epss_check(cve_id):
 
 
 # Check NIST NVD for the CVE
-def nist_check(cve_id):
+def nist_check(cve_id, api_key):
 
     try:
-        nvd_key = os.getenv('NIST_API')
+        # nvd_key = os.getenv('NIST_API')
+        nvd_key = api_key
         nvd_url = NIST_BASE_URL + f"?cveId={cve_id}"
         header = {'apiKey': f'{nvd_key}'}
 
@@ -174,8 +175,8 @@ def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_
 
 
 # Main function
-def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, save_output=None):
-    nist_result = nist_check(cve_id)
+def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, save_output=None, api=None):
+    nist_result = nist_check(cve_id, api)
     epss_result = epss_check(cve_id)
 
     working_file = None
