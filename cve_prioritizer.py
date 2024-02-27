@@ -26,6 +26,7 @@ Throttle_msg = ""
 # argparse setup
 parser = argparse.ArgumentParser(description="CVE Prioritizer", epilog='Happy Patching',
                                  usage='cve_prioritizer.py -c CVE-XXXX-XXXX')
+parser.add_argument('-a', '--api', type=str, help='Your API Key', required=False, metavar='')
 parser.add_argument('-c', '--cve', type=str, help='Unique CVE-ID', required=False, metavar='')
 parser.add_argument('-d', '--demo', help='Top 10 CVEs of the last 7days from cvetrends.com', action='store_true')
 parser.add_argument('-e', '--epss', type=float, help='EPSS threshold (Default 0.2)', default=0.2, metavar='')
@@ -59,30 +60,36 @@ if __name__ == '__main__':
         header = VERBOSE_HEADER
     if args.cve:
         cve_list.append(args.cve)
-        # print(LOGO+header)
-        if not os.getenv('NIST_API'):
-            print(LOGO + 'Warning: Using this tool without specifying a NIST API may result in errors'
-                  + '\n\n' + header)
+        if not args.api:
+            if not os.getenv('NIST_API'):
+                print(LOGO + 'Warning: Using this tool without specifying a NIST API may result in errors'
+                      + '\n\n' + header)
+            else:
+                print(LOGO + header)
         else:
             print(LOGO + header)
     elif args.list:
         cve_list = args.list
-        if not os.getenv('NIST_API'):
-            if len(cve_list) > 75:
-                Throttle_msg = "Large number of CVEs detected, requests will be throttle to avoid API issues"
-            print(LOGO + Throttle_msg + '\n'
-                  + 'Warning: Using this tool without specifying a NIST API may result in errors' + '\n\n' + header)
+        if not args.api:
+            if not os.getenv('NIST_API'):
+                if len(cve_list) > 75:
+                    Throttle_msg = "Large number of CVEs detected, requests will be throttle to avoid API issues"
+                print(LOGO + Throttle_msg + '\n'
+                      + 'Warning: Using this tool without specifying a NIST API may result in errors' + '\n\n' + header)
+            else:
+                print(LOGO + header)
         else:
             print(LOGO + header)
     elif args.file:
         cve_list = [line.rstrip() for line in args.file]
-        if not os.getenv('NIST_API'):
-            if len(cve_list) > 75:
-                Throttle_msg = "Large number of CVEs detected, requests will be throttle to avoid API issues"
-            print(LOGO + Throttle_msg + '\n'
-                  + 'Warning: Using this tool without specifying a NIST API may result in errors' + '\n\n' + header)
-        else:
-            print(LOGO + header)
+        if not args.api:
+            if not os.getenv('NIST_API'):
+                if len(cve_list) > 75:
+                    Throttle_msg = "Large number of CVEs detected, requests will be throttle to avoid API issues"
+                print(LOGO + Throttle_msg + '\n'
+                      + 'Warning: Using this tool without specifying a NIST API may result in errors' + '\n\n' + header)
+            else:
+                print(LOGO + header)
     elif args.demo:
         print("Unfortunately, due to Twitter’s recent API change, the CVETrends is currently unable to run.")
         # try:
@@ -104,14 +111,20 @@ if __name__ == '__main__':
 
     for cve in cve_list:
         throttle = 1
-        if len(cve_list) > 75 and not os.getenv('NIST_API'):
+        if len(cve_list) > 75 and not os.getenv('NIST_API') and not args.api:
             throttle = 6
         if not re.match(r"(CVE|cve-\d{4}-\d+$)", cve):
             print(f"{cve} Error: CVEs should be provided in the standard format CVE-0000-0000*")
         else:
+            api_key = None
+            if args.api:
+                api_key = args.api
+            elif os.getenv('NIST_API'):
+                api_key = os.getenv('NIST_API')
+
             sem.acquire()
             t = threading.Thread(target=worker, args=(cve.upper().strip(), cvss_threshold, epss_threshold, args.verbose,
-                                                      sem, color_enabled, args.output))
+                                                      sem, color_enabled, args.output, api_key))
             threads.append(t)
             t.start()
             time.sleep(throttle)
