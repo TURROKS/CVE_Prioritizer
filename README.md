@@ -107,7 +107,7 @@ included `.env` file.
 **One line terminal:**
 
 ```
-sed -i 's/NIST_API=/NIST_API=NISTAPIKEY /' .env
+sed -i 's/NIST_API=[^ ]*/NIST_API=your-key-here/' .env
 ```
 2. Choose one of the following input methods:
    - **Single CVE:** Use the `-c` or `--cve` flags followed by the CVE ID.
