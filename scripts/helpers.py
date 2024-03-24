@@ -13,7 +13,7 @@ from scripts.constants import NIST_BASE_URL
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.4.2"
+__version__ = "1.4.3"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -35,7 +35,7 @@ def epss_check(cve_id):
             if epss_response.json().get("total") > 0:
                 for cve in epss_response.json().get("data"):
                     results = {"epss": float(cve.get("epss")),
-                               "percentile": int(float(cve.get("percentile"))*100)}
+                               "percentile": int(float(cve.get("percentile")) * 100)}
                     return results
             else:
                 click.echo(f"{cve_id:<18}Not Found in EPSS.")
@@ -76,7 +76,8 @@ def nist_check(cve_id, api_key):
                         cisa_kev = True
 
                     try:
-                        cpe = unique_cve.get("cve").get("configurations")[0].get("nodes")[0].get("cpeMatch")[0].get("criteria")
+                        cpe = unique_cve.get("cve").get("configurations")[0].get("nodes")[0].get("cpeMatch")[0].get(
+                            "criteria")
                     except TypeError:
                         cpe = 'cpe:2.3:::::::::::'
 
@@ -87,7 +88,8 @@ def nist_check(cve_id, api_key):
                                        "cvss_baseScore": float(metric.get("cvssData").get("baseScore")),
                                        "cvss_severity": metric.get("cvssData").get("baseSeverity"),
                                        "cisa_kev": cisa_kev,
-                                       "cpe": cpe}
+                                       "cpe": cpe,
+                                       "vector": metric.get("cvssData").get("vectorString")}
                             return results
                     elif unique_cve.get("cve").get("metrics").get("cvssMetricV30"):
                         for metric in unique_cve.get("cve").get("metrics").get("cvssMetricV30"):
@@ -95,7 +97,8 @@ def nist_check(cve_id, api_key):
                                        "cvss_baseScore": float(metric.get("cvssData").get("baseScore")),
                                        "cvss_severity": metric.get("cvssData").get("baseSeverity"),
                                        "cisa_kev": cisa_kev,
-                                       "cpe": cpe}
+                                       "cpe": cpe,
+                                       "vector": metric.get("cvssData").get("vectorString")}
                             return results
                     elif unique_cve.get("cve").get("metrics").get("cvssMetricV2"):
                         for metric in unique_cve.get("cve").get("metrics").get("cvssMetricV2"):
@@ -103,7 +106,8 @@ def nist_check(cve_id, api_key):
                                        "cvss_baseScore": float(metric.get("cvssData").get("baseScore")),
                                        "cvss_severity": metric.get("baseSeverity"),
                                        "cisa_kev": cisa_kev,
-                                       "cpe": cpe}
+                                       "cpe": cpe,
+                                       "vector": metric.get("cvssData").get("vectorString")}
                             return results
                     elif unique_cve.get("cve").get("vulnStatus") == "Awaiting Analysis":
                         click.echo(f"{cve_id:<18}NIST Status: {unique_cve.get('cve').get('vulnStatus')}")
@@ -162,18 +166,20 @@ def truncate_string(input_string, max_length):
 
 # Function manages the outputs
 def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_version, cvss_severity, cisa_kev,
-                    verbose, cpe, no_color):
-
+                    verbose, cpe, vector, no_color):
     color_priority = colored_print(priority)
     vendor, product = parse_cpe(cpe)
 
     if verbose:
         if no_color:
-            click.echo(f"{cve_id:<18}{color_priority:<22}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}"
-                  f"{cisa_kev:<10}{truncate_string(vendor,15):<18}{truncate_string(product, 20)}")
+            click.echo(
+                f"{cve_id:<18}{color_priority:<22}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}"
+                f"{cisa_kev:<10}{truncate_string(vendor, 15):<18}"
+                f"{truncate_string(product, 20):23}{vector}")
         else:
             click.echo(f"{cve_id:<18}{priority:<13}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}"
-                  f"{cisa_kev:<10}{truncate_string(vendor, 15):<18}{truncate_string(product, 20)}")
+                       f"{cisa_kev:<10}{truncate_string(vendor, 15):<18}"
+                       f"{truncate_string(product, 20):<23}{vector}")
     else:
         if no_color:
             click.echo(f"{cve_id:<18}{color_priority:<22}")
@@ -181,7 +187,7 @@ def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_
             click.echo(f"{cve_id:<18}{priority:<13}")
     if working_file:
         working_file.write(f"{cve_id},{priority},{epss},{cvss_base_score},{cvss_version},{cvss_severity},"
-                           f"{cisa_kev},{cpe},{vendor},{product}\n")
+                           f"{cisa_kev},{cpe},{vendor},{product},{vector}\n")
 
 
 # Main function
@@ -201,29 +207,29 @@ def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, s
             print_and_write(working_file, cve_id, 'Priority 1+', epss_result.get('epss'),
                             nist_result.get('cvss_baseScore'), nist_result.get('cvss_version'),
                             nist_result.get('cvss_severity'), 'TRUE', verbose_print, nist_result.get('cpe'),
-                            colored_output)
+                            nist_result.get('vector'), colored_output)
         elif nist_result.get("cvss_baseScore") >= cvss_score:
             if epss_result.get("epss") >= epss_score:
                 print_and_write(working_file, cve_id, 'Priority 1', epss_result.get('epss'),
                                 nist_result.get('cvss_baseScore'), nist_result.get('cvss_version'),
                                 nist_result.get('cvss_severity'), 'FALSE', verbose_print, nist_result.get('cpe'),
-                                colored_output)
+                                nist_result.get('vector'), colored_output)
             else:
                 print_and_write(working_file, cve_id, 'Priority 2', epss_result.get('epss'),
                                 nist_result.get('cvss_baseScore'), nist_result.get('cvss_version'),
                                 nist_result.get('cvss_severity'), 'FALSE', verbose_print, nist_result.get('cpe'),
-                                colored_output)
+                                nist_result.get('vector'), colored_output)
         else:
             if epss_result.get("epss") >= epss_score:
                 print_and_write(working_file, cve_id, 'Priority 3', epss_result.get('epss'),
                                 nist_result.get('cvss_baseScore'), nist_result.get('cvss_version'),
                                 nist_result.get('cvss_severity'), 'FALSE', verbose_print, nist_result.get('cpe'),
-                                colored_output)
+                                nist_result.get('vector'), colored_output)
             else:
                 print_and_write(working_file, cve_id, 'Priority 4', epss_result.get('epss'),
                                 nist_result.get('cvss_baseScore'), nist_result.get('cvss_version'),
                                 nist_result.get('cvss_severity'), 'FALSE', verbose_print, nist_result.get('cpe'),
-                                colored_output)
+                                nist_result.get('vector'), colored_output)
     except (TypeError, AttributeError):
         pass
 

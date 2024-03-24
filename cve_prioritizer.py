@@ -2,7 +2,7 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.4.2"
+__version__ = "1.4.3"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -118,7 +118,7 @@ def main(api, cve, demo, epss, file, cvss, output, threads, verbose, list, no_co
         #     click.echo(f"Unable to connect to CVE Trends")
 
     if output:
-        output.write("cve_id,priority,epss,cvss,cvss_version,cvss_severity,cisa_kev,cpe,vendor,product" + "\n")
+        output.write("cve_id,priority,epss,cvss,cvss_version,cvss_severity,cisa_kev,cpe,vendor,product,vector" + "\n")
 
     for cve in cve_list:
         throttle = 1
