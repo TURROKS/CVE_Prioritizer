@@ -100,18 +100,13 @@ pip3 install -r requirements.txt
 
 To use CVE_Prioritizer effectively, follow these steps:
 
-1. Request an API key from NIST NVD to avoid public rate limits. You can obtain a key 
-[here](https://nvd.nist.gov/developers/request-an-api-key) and add it to the 
-included `.env` file.
-
-**One line terminal:**
-
-```
-sed -i 's/NIST_API=[^ ]*/NIST_API=your-key-here/' .env
-```
+1. Request your API keys to avoid public rate limits. 
+   - **NIST NVD:** Free API can be requested [here](https://nvd.nist.gov/developers/request-an-api-key) 
+   - **VULNCHECK:** Register [here](https://vulncheck.com/register), Settings > New Token.
+   - **Save APIs:** use the `-sa` or `--set-api` option to save your API Keys in your environment file (.env)
 2. Choose one of the following input methods:
    - **Single CVE:** Use the `-c` or `--cve` flags followed by the CVE ID.
-   - **List of CVEs:** Provide a **space-separated** list of CVEs using the `-l` flag.
+   - **List of CVEs:** Provide a **comma-separated** list of CVEs using the `-l` flag.
    - **File with CVEs:** Import a file containing CVE IDs (one per line) using the `-f` flag.
 3. Tailor the output according to your needs:
    - Use the `-v` or `--verbose` flags for detailed information, including EPSS Score, CVSS Base Score, CVSS Version, 
