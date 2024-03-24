@@ -102,19 +102,24 @@ To use CVE_Prioritizer effectively, follow these steps:
 
 1. Request your API keys to avoid public rate limits. 
    - **NIST NVD:** Free API can be requested [here](https://nvd.nist.gov/developers/request-an-api-key) 
-   - **VULNCHECK:** Register [here](https://vulncheck.com/register), Settings > New Token.
+   - **VULNCHECK (Fast):** Register [here](https://vulncheck.com/register), Settings > New Token.
    - **Save APIs:** use the `-sa` or `--set-api` option to save your API Keys in your environment file (.env)
-2. Choose one of the following input methods:
+2. Select your CVE Data source
+   - **NIST NVD:** This is the default source.
+   - **NVD++:** [VulnCheck's](https://vulncheck.com/nvd2) NVD2 solves NIST's API challenges with a reliable, persistent 
+connection to their Community NVD 2.0 API that operates at machine speed. 
+3. Choose one of the following input methods:
    - **Single CVE:** Use the `-c` or `--cve` flags followed by the CVE ID.
    - **List of CVEs:** Provide a **comma-separated** list of CVEs using the `-l` flag.
    - **File with CVEs:** Import a file containing CVE IDs (one per line) using the `-f` flag.
-3. Tailor the output according to your needs:
+4. Tailor the output according to your needs:
    - Use the `-v` or `--verbose` flags for detailed information, including EPSS Score, CVSS Base Score, CVSS Version, 
    CVSS Severity, and CISA KEV status.
    - Define custom thresholds using the `--cvss` and/or `--epss` flags to align the results with your organization's 
    risk appetite.
    - Define the number of concurrent threads by using the `-t` or `--threads` flags, the default and recommended number
-   is 100 to avoid API rate limitations.  
+   is 100 to avoid API rate limitations.
+   - 
 
 ### Examples
 

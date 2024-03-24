@@ -2,7 +2,7 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.4.3"
+__version__ = "1.5.0"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -39,7 +39,8 @@ Throttle_msg = ''
 @click.option('-l', '--list', help='Comma separated list of CVEs')
 @click.option('-nc', '--no-color', is_flag=True, help='Disable Colored Output')
 @click.option('-sa', '--set-api', is_flag=True, help='Save API keys')
-def main(api, cve, demo, epss, file, cvss, output, threads, verbose, list, no_color, set_api):
+@click.option('-vc', '--vulncheck', is_flag=True, help='Use NVD++ - Requires VulnCheck API')
+def main(api, cve, demo, epss, file, cvss, output, threads, verbose, list, no_color, set_api, vulncheck):
     # Global Arguments
     color_enabled = not no_color
     throttle_msg = ''
@@ -71,7 +72,7 @@ def main(api, cve, demo, epss, file, cvss, output, threads, verbose, list, no_co
     if cve:
         cve_list.append(cve)
         if not api:
-            if not os.getenv('NIST_API'):
+            if not os.getenv('NIST_API') and not vulncheck:
                 click.echo(LOGO + 'Warning: Using this tool without specifying a NIST API may result in errors'
                            + '\n\n' + header)
             else:
@@ -81,7 +82,7 @@ def main(api, cve, demo, epss, file, cvss, output, threads, verbose, list, no_co
     elif list:
         cve_list = list.split(',')
         if not api:
-            if not os.getenv('NIST_API'):
+            if not os.getenv('NIST_API') and not vulncheck:
                 if len(cve_list) > 75:
                     throttle_msg = 'Large number of CVEs detected, requests will be throttle to avoid API issues'
                 click.echo(LOGO + throttle_msg + '\n'
@@ -94,7 +95,7 @@ def main(api, cve, demo, epss, file, cvss, output, threads, verbose, list, no_co
     elif file:
         cve_list = [line.rstrip() for line in file]
         if not api:
-            if not os.getenv('NIST_API'):
+            if not os.getenv('NIST_API') and not vulncheck:
                 if len(cve_list) > 75:
                     throttle_msg = "Large number of CVEs detected, requests will be throttle to avoid API issues"
                 click.echo(LOGO + throttle_msg + '\n'
@@ -122,20 +123,19 @@ def main(api, cve, demo, epss, file, cvss, output, threads, verbose, list, no_co
 
     for cve in cve_list:
         throttle = 1
-        if len(cve_list) > 75 and not os.getenv('NIST_API') and not api:
+        if len(cve_list) > 75 and not os.getenv('NIST_API') and not api and not vulncheck:
             throttle = 6
+        if vulncheck and (os.getenv('VULNCHECK_API') or api):
+            throttle = 0
+        elif vulncheck and not os.getenv('VULNCHECK_API') and not api:
+            click.echo("VulnCheck requires an API key")
+            exit()
         if not re.match(r'(CVE|cve-\d{4}-\d+$)', cve):
             click.echo(f'{cve} Error: CVEs should be provided in the standard format CVE-0000-0000*')
         else:
-            api_key = None
-            if api:
-                api_key = api
-            elif os.getenv('NIST_API'):
-                api_key = os.getenv('NIST_API')
-
             sem.acquire()
             t = threading.Thread(target=worker, args=(cve.upper().strip(), cvss_threshold, epss_threshold, verbose,
-                                                      sem, color_enabled, output, api_key))
+                                                      sem, color_enabled, output, api, vulncheck))
             threads.append(t)
             t.start()
             time.sleep(throttle)
