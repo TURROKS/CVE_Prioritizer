@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # This file contains the functions that create the reports
 
+import os
 import requests
 
 import click
@@ -250,3 +251,28 @@ def cve_trends():
         return None
 
     return cve_list
+
+
+def update_env_file(file, key, value):
+    """Update the .env file with the new key value."""
+    env_file_path = file
+    env_lines = []
+    key_found = False
+
+    # Read the current .env file and update the key if it exists
+    if os.path.exists(env_file_path):
+        with open(env_file_path, 'r') as file:
+            for line in file:
+                if line.startswith(key):
+                    env_lines.append(f'{key}="{value}"\n')
+                    key_found = True
+                else:
+                    env_lines.append(line)
+
+    # If the key was not found, add it to the end
+    if not key_found:
+        env_lines.append(f'{key}="{value}"\n')
+
+    # Write the changes back to the .env file
+    with open(env_file_path, 'w') as file:
+        file.writelines(env_lines)

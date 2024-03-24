@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 from scripts.constants import LOGO
 from scripts.constants import SIMPLE_HEADER
 from scripts.constants import VERBOSE_HEADER
+from scripts.helpers import update_env_file
 from scripts.helpers import worker
 
 load_dotenv()
@@ -37,7 +38,8 @@ Throttle_msg = ''
 @click.option('-v', '--verbose', is_flag=True, help='Verbose mode')
 @click.option('-l', '--list', help='Comma separated list of CVEs')
 @click.option('-nc', '--no-color', is_flag=True, help='Disable Colored Output')
-def main(api, cve, demo, epss, file, cvss, output, threads, verbose, list, no_color):
+@click.option('-sa', '--set-api', is_flag=True, help='Save API keys')
+def main(api, cve, demo, epss, file, cvss, output, threads, verbose, list, no_color, set_api):
     # Global Arguments
     color_enabled = not no_color
     throttle_msg = ''
@@ -52,6 +54,18 @@ def main(api, cve, demo, epss, file, cvss, output, threads, verbose, list, no_co
     cve_list = []
     threads = []
 
+    if set_api:
+        services = ['nist_nvd', 'vulncheck']
+        service = click.prompt("Please choose a service to set the API key",
+                               type=click.Choice(services, case_sensitive=False))
+        api_key = click.prompt(f"Enter the API key for {service}", hide_input=True)
+
+        if service == 'nist_nvd':
+            update_env_file('.env', 'NIST_API', api_key)
+        elif service == 'vulncheck':
+            update_env_file('.env', 'VULNCHECK_API', api_key)
+
+        click.echo(f"API key for {service} updated successfully.")
     if verbose:
         header = VERBOSE_HEADER
     if cve:
