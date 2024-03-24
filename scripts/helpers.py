@@ -14,7 +14,7 @@ from scripts.constants import VULNCHECK_BASE_URL
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.5.0"
+__version__ = "1.5.1"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -41,7 +41,7 @@ def epss_check(cve_id):
             else:
                 click.echo(f"{cve_id:<18}Not Found in EPSS.")
         else:
-            click.echo("Error connecting to EPSS")
+            click.echo(f"Error connecting to EPSS - {epss_status_code}")
     except requests.exceptions.ConnectionError:
         click.echo(f"Unable to connect to EPSS, Check your Internet connection or try again")
         return None
