@@ -107,7 +107,7 @@ To use CVE_Prioritizer effectively, follow these steps:
 2. Select your CVE Data source
    - **NIST NVD:** This is the default source.
    - **NVD++:** [VulnCheck's](https://vulncheck.com/nvd2) NVD2 solves NIST's API challenges with a reliable, persistent 
-connection to their Community NVD 2.0 API that operates at machine speed. 
+connection to their Community NVD 2.0 API that operates at machine speed use `-vc` or `--vulncheck` to select this source. 
 3. Choose one of the following input methods:
    - **Single CVE:** Use the `-c` or `--cve` flags followed by the CVE ID.
    - **List of CVEs:** Provide a **comma-separated** list of CVEs using the `-l` flag.
