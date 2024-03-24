@@ -2,17 +2,17 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.4.0"
+__version__ = "1.4.2"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
-import argparse
 import os
 import re
 import threading
 import time
 from threading import Semaphore
 
+import click
 from dotenv import load_dotenv
 
 from scripts.constants import LOGO
@@ -21,113 +21,114 @@ from scripts.constants import VERBOSE_HEADER
 from scripts.helpers import worker
 
 load_dotenv()
-Throttle_msg = ""
+Throttle_msg = ''
+
 
 # argparse setup
-parser = argparse.ArgumentParser(description="CVE Prioritizer", epilog='Happy Patching',
-                                 usage='cve_prioritizer.py -c CVE-XXXX-XXXX')
-parser.add_argument('-a', '--api', type=str, help='Your API Key', required=False, metavar='')
-parser.add_argument('-c', '--cve', type=str, help='Unique CVE-ID', required=False, metavar='')
-parser.add_argument('-d', '--demo', help='Top 10 CVEs of the last 7days from cvetrends.com', action='store_true')
-parser.add_argument('-e', '--epss', type=float, help='EPSS threshold (Default 0.2)', default=0.2, metavar='')
-parser.add_argument('-f', '--file', type=argparse.FileType('r'), help='TXT file with CVEs (One per Line)',
-                    required=False, metavar='')
-parser.add_argument('-n', '--cvss', type=float, help='CVSS threshold (Default 6.0)', default=6.0, metavar='')
-parser.add_argument('-o', '--output', type=str, help='Output filename', required=False, metavar='')
-parser.add_argument('-t', '--threads', type=int, help='Number of concurrent threads', required=False, metavar='',
-                    default=100)
-parser.add_argument('-v', '--verbose', help='Verbose mode', action='store_true')
-parser.add_argument('-l', '--list', help='Space separated list of CVEs', nargs='+', required=False, metavar='')
-parser.add_argument('-nc', '--no-color', help='Disable Colored Output', action='store_true')
-
-# Global Arguments
-args = parser.parse_args()
-color_enabled = not args.no_color
-
-if __name__ == '__main__':
+@click.command()
+@click.option('-a', '--api', type=str, help='Your API Key')
+@click.option('-c', '--cve', type=str, help='Unique CVE-ID')
+@click.option('-d', '--demo', is_flag=True, help='Top 10 CVEs of the last 7days from cvetrends.com')
+@click.option('-e', '--epss', type=float, default=0.2, help='EPSS threshold (Default 0.2)')
+@click.option('-f', '--file', type=click.File('r'), help='TXT file with CVEs (One per Line)')
+@click.option('-n', '--cvss', type=float, default=6.0, help='CVSS threshold (Default 6.0)')
+@click.option('-o', '--output', type=click.File('w'), help='Output filename')
+@click.option('-t', '--threads', type=int, default=100, help='Number of concurrent threads')
+@click.option('-v', '--verbose', is_flag=True, help='Verbose mode')
+@click.option('-l', '--list', help='Comma separated list of CVEs')
+@click.option('-nc', '--no-color', is_flag=True, help='Disable Colored Output')
+def main(api, cve, demo, epss, file, cvss, output, threads, verbose, list, no_color):
+    # Global Arguments
+    color_enabled = not no_color
+    throttle_msg = ''
 
     # standard args
     header = SIMPLE_HEADER
-    epss_threshold = args.epss
-    cvss_threshold = args.cvss
-    sem = Semaphore(args.threads)
+    epss_threshold = epss
+    cvss_threshold = cvss
+    sem = Semaphore(threads)
 
     # Temporal lists
     cve_list = []
     threads = []
 
-    if args.verbose:
+    if verbose:
         header = VERBOSE_HEADER
-    if args.cve:
-        cve_list.append(args.cve)
-        if not args.api:
+    if cve:
+        cve_list.append(cve)
+        if not api:
             if not os.getenv('NIST_API'):
-                print(LOGO + 'Warning: Using this tool without specifying a NIST API may result in errors'
-                      + '\n\n' + header)
+                click.echo(LOGO + 'Warning: Using this tool without specifying a NIST API may result in errors'
+                           + '\n\n' + header)
             else:
-                print(LOGO + header)
+                click.echo(LOGO + header)
         else:
-            print(LOGO + header)
-    elif args.list:
-        cve_list = args.list
-        if not args.api:
+            click.echo(LOGO + header)
+    elif list:
+        cve_list = list.split(',')
+        if not api:
             if not os.getenv('NIST_API'):
                 if len(cve_list) > 75:
-                    Throttle_msg = "Large number of CVEs detected, requests will be throttle to avoid API issues"
-                print(LOGO + Throttle_msg + '\n'
-                      + 'Warning: Using this tool without specifying a NIST API may result in errors' + '\n\n' + header)
+                    throttle_msg = 'Large number of CVEs detected, requests will be throttle to avoid API issues'
+                click.echo(LOGO + throttle_msg + '\n'
+                           + 'Warning: Using this tool without specifying a NIST API may result in errors' + '\n\n'
+                           + header)
             else:
-                print(LOGO + header)
+                click.echo(LOGO + header)
         else:
-            print(LOGO + header)
-    elif args.file:
-        cve_list = [line.rstrip() for line in args.file]
-        if not args.api:
+            click.echo(LOGO + header)
+    elif file:
+        cve_list = [line.rstrip() for line in file]
+        if not api:
             if not os.getenv('NIST_API'):
                 if len(cve_list) > 75:
-                    Throttle_msg = "Large number of CVEs detected, requests will be throttle to avoid API issues"
-                print(LOGO + Throttle_msg + '\n'
-                      + 'Warning: Using this tool without specifying a NIST API may result in errors' + '\n\n' + header)
+                    throttle_msg = "Large number of CVEs detected, requests will be throttle to avoid API issues"
+                click.echo(LOGO + throttle_msg + '\n'
+                           + 'Warning: Using this tool without specifying a NIST API may result in errors' + '\n\n'
+                           + header)
             else:
-                print(LOGO + header)
-    elif args.demo:
-        print("Unfortunately, due to Twitter’s recent API change, the CVETrends is currently unable to run.")
+                click.echo(LOGO + header)
+    elif demo:
+        click.echo('Unfortunately, due to Twitter’s recent API change, the CVETrends is currently unable to run.')
         # try:
         #     trends = cve_trends()
         #     if trends:
         #         cve_list = trends
         #         if not os.getenv('NIST_API'):
-        #             print(
+        #             click.echo(
         #                 LOGO + 'Warning: Using this tool without specifying a NIST API may result in errors'
         #                 + '\n\n' + header)
         #         else:
-        #             print(LOGO + header)
+        #             click.echo(LOGO + header)
         # except json.JSONDecodeError:
-        #     print(f"Unable to connect to CVE Trends")
+        #     click.echo(f"Unable to connect to CVE Trends")
 
-    if args.output:
-        with open(args.output, 'w') as output_file:
-            output_file.write("cve_id,priority,epss,cvss,cvss_version,cvss_severity,cisa_kev,cpe,vendor,product"+"\n")
+    if output:
+        output.write("cve_id,priority,epss,cvss,cvss_version,cvss_severity,cisa_kev,cpe,vendor,product" + "\n")
 
     for cve in cve_list:
         throttle = 1
-        if len(cve_list) > 75 and not os.getenv('NIST_API') and not args.api:
+        if len(cve_list) > 75 and not os.getenv('NIST_API') and not api:
             throttle = 6
-        if not re.match(r"(CVE|cve-\d{4}-\d+$)", cve):
-            print(f"{cve} Error: CVEs should be provided in the standard format CVE-0000-0000*")
+        if not re.match(r'(CVE|cve-\d{4}-\d+$)', cve):
+            click.echo(f'{cve} Error: CVEs should be provided in the standard format CVE-0000-0000*')
         else:
             api_key = None
-            if args.api:
-                api_key = args.api
+            if api:
+                api_key = api
             elif os.getenv('NIST_API'):
                 api_key = os.getenv('NIST_API')
 
             sem.acquire()
-            t = threading.Thread(target=worker, args=(cve.upper().strip(), cvss_threshold, epss_threshold, args.verbose,
-                                                      sem, color_enabled, args.output, api_key))
+            t = threading.Thread(target=worker, args=(cve.upper().strip(), cvss_threshold, epss_threshold, verbose,
+                                                      sem, color_enabled, output, api_key))
             threads.append(t)
             t.start()
             time.sleep(throttle)
 
     for t in threads:
         t.join()
+
+
+if __name__ == '__main__':
+    main()

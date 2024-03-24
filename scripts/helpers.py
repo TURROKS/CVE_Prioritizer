@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # This file contains the functions that create the reports
 
-import os
 import requests
 
+import click
 from dotenv import load_dotenv
 from termcolor import colored
 
@@ -12,7 +12,7 @@ from scripts.constants import NIST_BASE_URL
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.4.0"
+__version__ = "1.4.2"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -21,6 +21,9 @@ load_dotenv()
 
 # Collect EPSS Scores
 def epss_check(cve_id):
+    """
+    Function collects EPSS from FIRST.org
+    """
 
     try:
         epss_url = EPSS_URL + f"?cve={cve_id}"
@@ -34,16 +37,19 @@ def epss_check(cve_id):
                                "percentile": int(float(cve.get("percentile"))*100)}
                     return results
             else:
-                print(f"{cve_id:<18}Not Found in EPSS.")
+                click.echo(f"{cve_id:<18}Not Found in EPSS.")
         else:
-            print("Error connecting to EPSS")
+            click.echo("Error connecting to EPSS")
     except requests.exceptions.ConnectionError:
-        print(f"Unable to connect to EPSS, Check your Internet connection or try again")
+        click.echo(f"Unable to connect to EPSS, Check your Internet connection or try again")
         return None
 
 
 # Check NIST NVD for the CVE
 def nist_check(cve_id, api_key):
+    """
+    Function collects NVD Data
+    """
 
     try:
         # nvd_key = os.getenv('NIST_API')
@@ -99,18 +105,21 @@ def nist_check(cve_id, api_key):
                                        "cpe": cpe}
                             return results
                     elif unique_cve.get("cve").get("vulnStatus") == "Awaiting Analysis":
-                        print(f"{cve_id:<18}NIST Status: {unique_cve.get('cve').get('vulnStatus')}")
+                        click.echo(f"{cve_id:<18}NIST Status: {unique_cve.get('cve').get('vulnStatus')}")
             else:
-                print(f"{cve_id:<18}Not Found in NIST NVD.")
+                click.echo(f"{cve_id:<18}Not Found in NIST NVD.")
                 exit()
         else:
-            print(f"{cve_id:<18}Error code {nvd_status_code}")
+            click.echo(f"{cve_id:<18}Error code {nvd_status_code}")
     except requests.exceptions.ConnectionError:
-        print(f"Unable to connect to NIST NVD, Check your Internet connection or try again")
+        click.echo(f"Unable to connect to NIST NVD, Check your Internet connection or try again")
         return None
 
 
 def colored_print(priority):
+    """
+    Function used to handle colored print
+    """
     if priority == 'Priority 1+':
         return colored(priority, 'red')
     elif priority == 'Priority 1':
@@ -159,16 +168,16 @@ def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_
 
     if verbose:
         if no_color:
-            print(f"{cve_id:<18}{color_priority:<22}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}"
+            click.echo(f"{cve_id:<18}{color_priority:<22}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}"
                   f"{cisa_kev:<10}{truncate_string(vendor,15):<18}{truncate_string(product, 20)}")
         else:
-            print(f"{cve_id:<18}{priority:<13}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}"
+            click.echo(f"{cve_id:<18}{priority:<13}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}"
                   f"{cisa_kev:<10}{truncate_string(vendor, 15):<18}{truncate_string(product, 20)}")
     else:
         if no_color:
-            print(f"{cve_id:<18}{color_priority:<22}")
+            click.echo(f"{cve_id:<18}{color_priority:<22}")
         else:
-            print(f"{cve_id:<18}{priority:<13}")
+            click.echo(f"{cve_id:<18}{priority:<13}")
     if working_file:
         working_file.write(f"{cve_id},{priority},{epss},{cvss_base_score},{cvss_version},{cvss_severity},"
                            f"{cisa_kev},{cpe},{vendor},{product}\n")
@@ -176,12 +185,15 @@ def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_
 
 # Main function
 def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, save_output=None, api=None):
+    """
+    Main Function
+    """
     nist_result = nist_check(cve_id, api)
     epss_result = epss_check(cve_id)
 
     working_file = None
     if save_output:
-        working_file = open(save_output, 'a')
+        working_file = save_output
 
     try:
         if nist_result.get("cisa_kev"):
@@ -214,14 +226,14 @@ def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, s
     except (TypeError, AttributeError):
         pass
 
-    if working_file:
-        working_file.close()
-
     sem.release()
 
 
 # Function retrieves data from CVE Trends
 def cve_trends():
+    """
+    Function used to collect demo CVEs
+    """
 
     cve_list = []
 
@@ -234,7 +246,7 @@ def cve_trends():
         else:
             return None
     except ConnectionError:
-        print(f"Unable to connect to CVE Trends, Check your Internet connection or try again")
+        click.echo(f"Unable to connect to CVE Trends, Check your Internet connection or try again")
         return None
 
     return cve_list

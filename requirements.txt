@@ -2,3 +2,5 @@ setuptools
 requests
 python-dotenv
 termcolor
+pandas
+click
