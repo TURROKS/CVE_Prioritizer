@@ -1,7 +1,7 @@
 [project]
 name = "CVE Prioritizer"
 description = "Streamline vulnerability patching with CVSS, EPSS, and CISA's Known Exploited Vulnerabilities Prioritize actions based on real-time threat information, gain a competitive advantage, and stay informed about the latest trends."
-version = "1.5.1"
+version = "1.5.2"
 dependencies = [
     "setuptools",
     "requests",

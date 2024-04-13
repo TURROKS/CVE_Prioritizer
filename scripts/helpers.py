@@ -14,7 +14,7 @@ from scripts.constants import VULNCHECK_BASE_URL
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.5.1"
+__version__ = "1.5.2"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -196,7 +196,7 @@ def vulncheck_check(cve_id, api_key):
                                        "vector": metric.get("cvssData").get("vectorString")}
                             return results
                     elif unique_cve.get("vulnStatus") == "Awaiting Analysis":
-                        click.echo(f"{cve_id:<18}NIST Status: {unique_cve.get('cve').get('vulnStatus')}")
+                        click.echo(f"{cve_id:<18}NIST Status: {unique_cve.get('vulnStatus')}")
             else:
                 click.echo(f"{cve_id:<18}Not Found in VulnCheck.")
                 exit()
@@ -283,9 +283,9 @@ def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, s
     """
 
     if nvd_plus:
-        nist_result = vulncheck_check(cve_id, api)
+        cve_result = vulncheck_check(cve_id, api)
     else:
-        nist_result = nist_check(cve_id, api)
+        cve_result = nist_check(cve_id, api)
     epss_result = epss_check(cve_id)
 
     working_file = None
@@ -293,33 +293,33 @@ def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, s
         working_file = save_output
 
     try:
-        if nist_result.get("cisa_kev"):
+        if cve_result.get("cisa_kev"):
             print_and_write(working_file, cve_id, 'Priority 1+', epss_result.get('epss'),
-                            nist_result.get('cvss_baseScore'), nist_result.get('cvss_version'),
-                            nist_result.get('cvss_severity'), 'TRUE', verbose_print, nist_result.get('cpe'),
-                            nist_result.get('vector'), colored_output)
-        elif nist_result.get("cvss_baseScore") >= cvss_score:
+                            cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
+                            cve_result.get('cvss_severity'), 'TRUE', verbose_print, cve_result.get('cpe'),
+                            cve_result.get('vector'), colored_output)
+        elif cve_result.get("cvss_baseScore") >= cvss_score:
             if epss_result.get("epss") >= epss_score:
                 print_and_write(working_file, cve_id, 'Priority 1', epss_result.get('epss'),
-                                nist_result.get('cvss_baseScore'), nist_result.get('cvss_version'),
-                                nist_result.get('cvss_severity'), 'FALSE', verbose_print, nist_result.get('cpe'),
-                                nist_result.get('vector'), colored_output)
+                                cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
+                                cve_result.get('cvss_severity'), 'FALSE', verbose_print, cve_result.get('cpe'),
+                                cve_result.get('vector'), colored_output)
             else:
                 print_and_write(working_file, cve_id, 'Priority 2', epss_result.get('epss'),
-                                nist_result.get('cvss_baseScore'), nist_result.get('cvss_version'),
-                                nist_result.get('cvss_severity'), 'FALSE', verbose_print, nist_result.get('cpe'),
-                                nist_result.get('vector'), colored_output)
+                                cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
+                                cve_result.get('cvss_severity'), 'FALSE', verbose_print, cve_result.get('cpe'),
+                                cve_result.get('vector'), colored_output)
         else:
             if epss_result.get("epss") >= epss_score:
                 print_and_write(working_file, cve_id, 'Priority 3', epss_result.get('epss'),
-                                nist_result.get('cvss_baseScore'), nist_result.get('cvss_version'),
-                                nist_result.get('cvss_severity'), 'FALSE', verbose_print, nist_result.get('cpe'),
-                                nist_result.get('vector'), colored_output)
+                                cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
+                                cve_result.get('cvss_severity'), 'FALSE', verbose_print, cve_result.get('cpe'),
+                                cve_result.get('vector'), colored_output)
             else:
                 print_and_write(working_file, cve_id, 'Priority 4', epss_result.get('epss'),
-                                nist_result.get('cvss_baseScore'), nist_result.get('cvss_version'),
-                                nist_result.get('cvss_severity'), 'FALSE', verbose_print, nist_result.get('cpe'),
-                                nist_result.get('vector'), colored_output)
+                                cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
+                                cve_result.get('cvss_severity'), 'FALSE', verbose_print, cve_result.get('cpe'),
+                                cve_result.get('vector'), colored_output)
     except (TypeError, AttributeError):
         pass
 
