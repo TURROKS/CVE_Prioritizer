@@ -11,10 +11,11 @@ from termcolor import colored
 from scripts.constants import EPSS_URL
 from scripts.constants import NIST_BASE_URL
 from scripts.constants import VULNCHECK_BASE_URL
+from scripts.constants import VULNCHECK_KEV_BASE_URL
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.5.2"
+__version__ = "1.5.3"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -126,7 +127,7 @@ def nist_check(cve_id, api_key):
         return None
 
 
-# Check NIST NVD for the CVE
+# Check Vulncheck NVD++
 def vulncheck_check(cve_id, api_key):
     """
     Function collects VulnCheck NVD2 Data
@@ -207,6 +208,39 @@ def vulncheck_check(cve_id, api_key):
         return None
 
 
+def vulncheck_kev(cve_id, api_key):
+    """
+    Check Vulncheck's KEV catalog
+    """
+
+    try:
+        vulncheck_key = None
+        if api_key:
+            vulncheck_key = api_key
+        elif os.getenv('VULNCHECK_API'):
+            vulncheck_key = os.getenv('VULNCHECK_API')
+
+        # local variables
+        vulncheck_url = VULNCHECK_KEV_BASE_URL + f"?cve={cve_id}"
+        header = {"accept": "application/json"}
+        params = {"token": vulncheck_key}
+
+        # Check if API has been provided
+        if vulncheck_key:
+            vulncheck_response = requests.get(vulncheck_url, headers=header, params=params).json()
+
+            if vulncheck_response.get('data'):
+                return True
+            else:
+                return None
+        else:
+            click.echo("VulnCheck requires an API key")
+            exit()
+    except requests.exceptions.ConnectionError:
+        click.echo(f"Unable to connect to VulnCheck, Check your Internet connection or try again")
+        return None
+
+
 def colored_print(priority):
     """
     Function used to handle colored print
@@ -277,15 +311,25 @@ def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_
 
 
 # Main function
-def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, save_output=None, api=None, nvd_plus=None):
+def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, save_output=None, api=None,
+           nvd_plus=None, vc_kev=None):
     """
     Main Function
     """
+    exploited = None
 
-    if nvd_plus:
+    if vc_kev:
+        exploited = vulncheck_kev(cve_id, api)
         cve_result = vulncheck_check(cve_id, api)
+    elif nvd_plus:
+        cve_result = vulncheck_check(cve_id, api)
+        exploited = cve_result.get("cisa_kev")
     else:
+        if 'vulncheck' in str(api).lower():
+            click.echo("Wrong API Key provided (VulnCheck)")
+            exit()
         cve_result = nist_check(cve_id, api)
+        exploited = cve_result.get("cisa_kev")
     epss_result = epss_check(cve_id)
 
     working_file = None
@@ -293,7 +337,7 @@ def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, s
         working_file = save_output
 
     try:
-        if cve_result.get("cisa_kev"):
+        if exploited:
             print_and_write(working_file, cve_id, 'Priority 1+', epss_result.get('epss'),
                             cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
                             cve_result.get('cvss_severity'), 'TRUE', verbose_print, cve_result.get('cpe'),

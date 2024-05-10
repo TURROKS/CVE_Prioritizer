@@ -2,16 +2,19 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.5.1"
+__version__ = "1.5.3"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
 SIMPLE_HEADER = f"{'CVE-ID':<18}Priority"+"\n"+("-"*30)
 VERBOSE_HEADER = (f"{'CVE-ID':<18}{'PRIORITY':<13}{'EPSS':<9}{'CVSS':<6}{'VERSION':<10}{'SEVERITY':<10}{'CISA_KEV':<10}"
                   f"{'VENDOR':<18}{'PRODUCT':<23}VECTOR")+"\n"+("-"*162)
+VERBOSE_HEADER_VC = (f"{'CVE-ID':<18}{'PRIORITY':<13}{'EPSS':<9}{'CVSS':<6}{'VERSION':<10}{'SEVERITY':<10}"
+                     f"{'VC_KEV':<10}{'VENDOR':<18}{'PRODUCT':<23}VECTOR")+"\n"+("-"*162)
 EPSS_URL = "https://api.first.org/data/v1/epss"
 NIST_BASE_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 VULNCHECK_BASE_URL = "https://api.vulncheck.com/v3/index/nist-nvd2"
+VULNCHECK_KEV_BASE_URL = "https://api.vulncheck.com/v3/index/vulncheck-kev"
 LOGO = r"""
 #    ______   ______                         
 #   / ___/ | / / __/                         
@@ -20,6 +23,6 @@ LOGO = r"""
 #    / _ \____(_)__  ____(_) /_(_)__ ___ ____
 #   / ___/ __/ / _ \/ __/ / __/ /_ // -_) __/
 #  /_/  /_/ /_/\___/_/ /_/\__/_//__/\__/_/   
-#  v1.5.2                          BY TURROKS
+#  v1.5.3                          BY TURROKS
                                                   
 """""

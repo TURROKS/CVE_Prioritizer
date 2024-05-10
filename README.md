@@ -1,8 +1,10 @@
 # CVE Prioritizer Tool
 
 CVE_Prioritizer is a powerful tool that helps you prioritize vulnerability patching by combining 
-[CVSS](https://nvd.nist.gov/vuln-metrics/cvss#), [EPSS](https://www.first.org/epss/data_stats), and 
-CISA's [Known Exploited Vulnerabilities](https://www.cisa.gov/known-exploited-vulnerabilities-catalog). 
+[CVSS](https://nvd.nist.gov/vuln-metrics/cvss#), [EPSS](https://www.first.org/epss/data_stats),  
+CISA's [Known Exploited Vulnerabilities](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) and VulnCheck's community resources (
+[NVD++](https://docs.vulncheck.com/community/nist-nvd/introduction), 
+[KEV](https://docs.vulncheck.com/community/vulncheck-kev/introduction)). 
 It provides valuable insights into the likelihood of exploitation and the 
 potential impact of vulnerabilities on your information system.
 
@@ -107,7 +109,9 @@ To use CVE_Prioritizer effectively, follow these steps:
 2. Select your CVE Data source
    - **NIST NVD:** This is the default source.
    - **NVD++:** [VulnCheck's](https://vulncheck.com/nvd2) NVD2 solves NIST's API challenges with a reliable, persistent 
-connection to their Community NVD 2.0 API that operates at machine speed use `-vc` or `--vulncheck` to select this source. 
+connection to their Community NVD 2.0 API that operates at machine speed use `-vc` or `--vulncheck` to select this source.
+   - **VUNLCHECK KEV:** VulnCheck also provides a list of Known Exploited Vulnerabilities for free to the community. 
+user `-vck` or `vulnchek_kev` to select this source **(ONLY WORKS WITH NVD++)**.
 3. Choose one of the following input methods:
    - **Single CVE:** Use the `-c` or `--cve` flags followed by the CVE ID.
    - **List of CVEs:** Provide a **comma-separated** list of CVEs using the `-l` flag.

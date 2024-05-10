@@ -2,7 +2,7 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.5.1"
+__version__ = "1.5.3"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 from scripts.constants import LOGO
 from scripts.constants import SIMPLE_HEADER
 from scripts.constants import VERBOSE_HEADER
+from scripts.constants import VERBOSE_HEADER_VC
 from scripts.helpers import update_env_file
 from scripts.helpers import worker
 
@@ -40,7 +41,8 @@ Throttle_msg = ''
 @click.option('-nc', '--no-color', is_flag=True, help='Disable Colored Output')
 @click.option('-sa', '--set-api', is_flag=True, help='Save API keys')
 @click.option('-vc', '--vulncheck', is_flag=True, help='Use NVD++ - Requires VulnCheck API')
-def main(api, cve, demo, epss, file, cvss, output, threads, verbose, list, no_color, set_api, vulncheck):
+@click.option('-vck', '--vulncheck_kev', is_flag=True, help='Use Vulncheck KEV - Requires VulnCheck API')
+def main(api, cve, demo, epss, file, cvss, output, threads, verbose, list, no_color, set_api, vulncheck, vulncheck_kev):
     # Global Arguments
     color_enabled = not no_color
     throttle_msg = ''
@@ -69,6 +71,8 @@ def main(api, cve, demo, epss, file, cvss, output, threads, verbose, list, no_co
         click.echo(f"API key for {service} updated successfully.")
     if verbose:
         header = VERBOSE_HEADER
+        if vulncheck_kev:
+            header = VERBOSE_HEADER_VC
     if cve:
         cve_list.append(cve)
         if not api:
@@ -103,6 +107,8 @@ def main(api, cve, demo, epss, file, cvss, output, threads, verbose, list, no_co
                            + header)
             else:
                 click.echo(LOGO + header)
+        else:
+            click.echo(LOGO + header)
     elif demo:
         click.echo('Unfortunately, due to Twitter’s recent API change, the CVETrends is currently unable to run.')
         # try:
@@ -119,7 +125,12 @@ def main(api, cve, demo, epss, file, cvss, output, threads, verbose, list, no_co
         #     click.echo(f"Unable to connect to CVE Trends")
 
     if output:
-        output.write("cve_id,priority,epss,cvss,cvss_version,cvss_severity,cisa_kev,cpe,vendor,product,vector" + "\n")
+        if vulncheck_kev:
+            output.write("cve_id,priority,epss,cvss,cvss_version,cvss_severity,vulncheck_kev,cpe,vendor,product,vector"
+                         + "\n")
+        else:
+            output.write("cve_id,priority,epss,cvss,cvss_version,cvss_severity,cisa_kev,cpe,vendor,product,vector"
+                         + "\n")
 
     for cve in cve_list:
         throttle = 1
@@ -135,7 +146,7 @@ def main(api, cve, demo, epss, file, cvss, output, threads, verbose, list, no_co
         else:
             sem.acquire()
             t = threading.Thread(target=worker, args=(cve.upper().strip(), cvss_threshold, epss_threshold, verbose,
-                                                      sem, color_enabled, output, api, vulncheck))
+                                                      sem, color_enabled, output, api, vulncheck, vulncheck_kev))
             threads.append(t)
             t.start()
             time.sleep(throttle)
