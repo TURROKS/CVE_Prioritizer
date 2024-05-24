@@ -136,9 +136,9 @@ def main(api, cve, demo, epss, file, cvss, output, threads, verbose, list, no_co
         throttle = 1
         if len(cve_list) > 75 and not os.getenv('NIST_API') and not api and not vulncheck:
             throttle = 6
-        if vulncheck and (os.getenv('VULNCHECK_API') or api):
+        if (vulncheck or vulncheck_kev) and (os.getenv('VULNCHECK_API') or api):
             throttle = 0.25
-        elif vulncheck and not os.getenv('VULNCHECK_API') and not api:
+        elif (vulncheck or vulncheck_kev) and not os.getenv('VULNCHECK_API') and not api:
             click.echo("VulnCheck requires an API key")
             exit()
         if not re.match(r'(CVE|cve-\d{4}-\d+$)', cve):
