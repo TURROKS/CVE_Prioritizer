@@ -8,14 +8,11 @@ import click
 from dotenv import load_dotenv
 from termcolor import colored
 
-from scripts.constants import EPSS_URL
-from scripts.constants import NIST_BASE_URL
-from scripts.constants import VULNCHECK_BASE_URL
-from scripts.constants import VULNCHECK_KEV_BASE_URL
+from scripts.constants import EPSS_URL, NIST_BASE_URL, VULNCHECK_BASE_URL, VULNCHECK_KEV_BASE_URL
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.5.3"
+__version__ = "1.5.4"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -285,7 +282,7 @@ def truncate_string(input_string, max_length):
 
 
 # Function manages the outputs
-def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_version, cvss_severity, cisa_kev,
+def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_version, cvss_severity, kev, source,
                     verbose, cpe, vector, no_color):
     color_priority = colored_print(priority)
     vendor, product = parse_cpe(cpe)
@@ -294,11 +291,11 @@ def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_
         if no_color:
             click.echo(
                 f"{cve_id:<18}{color_priority:<22}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}"
-                f"{cisa_kev:<10}{truncate_string(vendor, 15):<18}"
+                f"{kev:<10}{truncate_string(vendor, 15):<18}"
                 f"{truncate_string(product, 20):<23}{vector}")
         else:
             click.echo(f"{cve_id:<18}{priority:<13}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}"
-                       f"{cisa_kev:<10}{truncate_string(vendor, 15):<18}"
+                       f"{kev:<10}{truncate_string(vendor, 15):<18}"
                        f"{truncate_string(product, 20):<23}{vector}")
     else:
         if no_color:
@@ -307,20 +304,20 @@ def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_
             click.echo(f"{cve_id:<18}{priority:<13}")
     if working_file:
         working_file.write(f"{cve_id},{priority},{epss},{cvss_base_score},{cvss_version},{cvss_severity},"
-                           f"{cisa_kev},{cpe},{vendor},{product},{vector}\n")
+                           f"{kev},{source},{cpe},{vendor},{product},{vector}\n")
 
 
 # Main function
 def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, save_output=None, api=None,
-           nvd_plus=None, vc_kev=None):
+           nvd_plus=None, vc_kev=None, results=None):
     """
     Main Function
     """
-    exploited = None
-
+    kev_source = 'CISA'
     if vc_kev:
         exploited = vulncheck_kev(cve_id, api)
         cve_result = vulncheck_check(cve_id, api)
+        kev_source = 'VULNCHECK'
     elif nvd_plus:
         cve_result = vulncheck_check(cve_id, api)
         exploited = cve_result.get("cisa_kev")
@@ -332,65 +329,54 @@ def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, s
         exploited = cve_result.get("cisa_kev")
     epss_result = epss_check(cve_id)
 
-    working_file = None
-    if save_output:
-        working_file = save_output
-
     try:
         if exploited:
-            print_and_write(working_file, cve_id, 'Priority 1+', epss_result.get('epss'),
+            print_and_write(save_output, cve_id, 'Priority 1+', epss_result.get('epss'),
                             cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
-                            cve_result.get('cvss_severity'), 'TRUE', verbose_print, cve_result.get('cpe'),
-                            cve_result.get('vector'), colored_output)
+                            cve_result.get('cvss_severity'), 'TRUE', kev_source, verbose_print,
+                            cve_result.get('cpe'), cve_result.get('vector'), colored_output)
         elif cve_result.get("cvss_baseScore") >= cvss_score:
             if epss_result.get("epss") >= epss_score:
-                print_and_write(working_file, cve_id, 'Priority 1', epss_result.get('epss'),
+                print_and_write(save_output, cve_id, 'Priority 1', epss_result.get('epss'),
                                 cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
-                                cve_result.get('cvss_severity'), 'FALSE', verbose_print, cve_result.get('cpe'),
-                                cve_result.get('vector'), colored_output)
+                                cve_result.get('cvss_severity'), '', kev_source, verbose_print,
+                                cve_result.get('cpe'), cve_result.get('vector'), colored_output)
             else:
-                print_and_write(working_file, cve_id, 'Priority 2', epss_result.get('epss'),
+                print_and_write(save_output, cve_id, 'Priority 2', epss_result.get('epss'),
                                 cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
-                                cve_result.get('cvss_severity'), 'FALSE', verbose_print, cve_result.get('cpe'),
-                                cve_result.get('vector'), colored_output)
+                                cve_result.get('cvss_severity'), '', kev_source, verbose_print,
+                                cve_result.get('cpe'), cve_result.get('vector'), colored_output)
         else:
             if epss_result.get("epss") >= epss_score:
-                print_and_write(working_file, cve_id, 'Priority 3', epss_result.get('epss'),
+                print_and_write(save_output, cve_id, 'Priority 3', epss_result.get('epss'),
                                 cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
-                                cve_result.get('cvss_severity'), 'FALSE', verbose_print, cve_result.get('cpe'),
-                                cve_result.get('vector'), colored_output)
+                                cve_result.get('cvss_severity'), '', kev_source, verbose_print,
+                                cve_result.get('cpe'), cve_result.get('vector'), colored_output)
             else:
-                print_and_write(working_file, cve_id, 'Priority 4', epss_result.get('epss'),
+                print_and_write(save_output, cve_id, 'Priority 4', epss_result.get('epss'),
                                 cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
-                                cve_result.get('cvss_severity'), 'FALSE', verbose_print, cve_result.get('cpe'),
-                                cve_result.get('vector'), colored_output)
+                                cve_result.get('cvss_severity'), '', kev_source, verbose_print,
+                                cve_result.get('cpe'), cve_result.get('vector'), colored_output)
+        if results is not None:
+            results.append({
+                'cve_id': cve_id,
+                'priority': 'P1+' if exploited else 'P1' if cve_result.get(
+                    "cvss_baseScore") >= cvss_score and epss_result.get(
+                    "epss") >= epss_score else 'P2' if epss_result.get(
+                    "epss") < epss_score else 'P3' if epss_result.get("epss") >= epss_score else 'P4',
+                'epss': epss_result.get('epss'),
+                'cvss_base_score': cve_result.get('cvss_baseScore'),
+                'cvss_version': cve_result.get('cvss_version'),
+                'cvss_severity': cve_result.get('cvss_severity'),
+                'kev': 'TRUE' if exploited else 'FALSE',
+                'kev_source': kev_source,
+                'cpe': cve_result.get('cpe'),
+                'vector': cve_result.get('vector')
+            })
     except (TypeError, AttributeError):
         pass
 
     sem.release()
-
-
-# Function retrieves data from CVE Trends
-def cve_trends():
-    """
-    Function used to collect demo CVEs
-    """
-
-    cve_list = []
-
-    try:
-        html = requests.get("https://cvetrends.com/api/cves/7days")
-        parsed = html.json()
-        if html.status_code == 200:
-            for cve in parsed.get("data"):
-                cve_list.append(cve.get("cve"))
-        else:
-            return None
-    except ConnectionError:
-        click.echo(f"Unable to connect to CVE Trends, Check your Internet connection or try again")
-        return None
-
-    return cve_list
 
 
 def update_env_file(file, key, value):

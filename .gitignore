@@ -14,6 +14,8 @@
 /misc/Tests/
 .env
 
+test_*
+
 # AWS User-specific
 .idea/**/aws.xml
 

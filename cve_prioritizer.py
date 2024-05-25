@@ -2,10 +2,11 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.5.3"
+__version__ = "1.5.4"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
+import json
 import os
 import re
 import threading
@@ -14,13 +15,10 @@ from threading import Semaphore
 
 import click
 from dotenv import load_dotenv
+from datetime import datetime
 
-from scripts.constants import LOGO
-from scripts.constants import SIMPLE_HEADER
-from scripts.constants import VERBOSE_HEADER
-from scripts.constants import VERBOSE_HEADER_VC
-from scripts.helpers import update_env_file
-from scripts.helpers import worker
+from scripts.constants import LOGO, SIMPLE_HEADER, VERBOSE_HEADER
+from scripts.helpers import update_env_file, worker
 
 load_dotenv()
 Throttle_msg = ''
@@ -30,9 +28,9 @@ Throttle_msg = ''
 @click.command()
 @click.option('-a', '--api', type=str, help='Your API Key')
 @click.option('-c', '--cve', type=str, help='Unique CVE-ID')
-@click.option('-d', '--demo', is_flag=True, help='Top 10 CVEs of the last 7days from cvetrends.com')
 @click.option('-e', '--epss', type=float, default=0.2, help='EPSS threshold (Default 0.2)')
 @click.option('-f', '--file', type=click.File('r'), help='TXT file with CVEs (One per Line)')
+@click.option('-j', '--json_file', type=click.Path(), required=False, help='JSON output')
 @click.option('-n', '--cvss', type=float, default=6.0, help='CVSS threshold (Default 6.0)')
 @click.option('-o', '--output', type=click.File('w'), help='Output filename')
 @click.option('-t', '--threads', type=int, default=100, help='Number of concurrent threads')
@@ -42,7 +40,8 @@ Throttle_msg = ''
 @click.option('-sa', '--set-api', is_flag=True, help='Save API keys')
 @click.option('-vc', '--vulncheck', is_flag=True, help='Use NVD++ - Requires VulnCheck API')
 @click.option('-vck', '--vulncheck_kev', is_flag=True, help='Use Vulncheck KEV - Requires VulnCheck API')
-def main(api, cve, demo, epss, file, cvss, output, threads, verbose, list, no_color, set_api, vulncheck, vulncheck_kev):
+def main(api, cve, epss, file, cvss, output, threads, verbose, list, no_color, set_api, vulncheck, vulncheck_kev,
+         json_file):
     # Global Arguments
     color_enabled = not no_color
     throttle_msg = ''
@@ -71,8 +70,6 @@ def main(api, cve, demo, epss, file, cvss, output, threads, verbose, list, no_co
         click.echo(f"API key for {service} updated successfully.")
     if verbose:
         header = VERBOSE_HEADER
-        if vulncheck_kev:
-            header = VERBOSE_HEADER_VC
     if cve:
         cve_list.append(cve)
         if not api:
@@ -109,29 +106,12 @@ def main(api, cve, demo, epss, file, cvss, output, threads, verbose, list, no_co
                 click.echo(LOGO + header)
         else:
             click.echo(LOGO + header)
-    elif demo:
-        click.echo('Unfortunately, due to Twitter’s recent API change, the CVETrends is currently unable to run.')
-        # try:
-        #     trends = cve_trends()
-        #     if trends:
-        #         cve_list = trends
-        #         if not os.getenv('NIST_API'):
-        #             click.echo(
-        #                 LOGO + 'Warning: Using this tool without specifying a NIST API may result in errors'
-        #                 + '\n\n' + header)
-        #         else:
-        #             click.echo(LOGO + header)
-        # except json.JSONDecodeError:
-        #     click.echo(f"Unable to connect to CVE Trends")
 
     if output:
-        if vulncheck_kev:
-            output.write("cve_id,priority,epss,cvss,cvss_version,cvss_severity,vulncheck_kev,cpe,vendor,product,vector"
-                         + "\n")
-        else:
-            output.write("cve_id,priority,epss,cvss,cvss_version,cvss_severity,cisa_kev,cpe,vendor,product,vector"
-                         + "\n")
+        output.write("cve_id,priority,epss,cvss,cvss_version,cvss_severity,kev,kev_source,cpe,vendor,product,vector" +
+                     "\n")
 
+    results = []
     for cve in cve_list:
         throttle = 1
         if len(cve_list) > 75 and not os.getenv('NIST_API') and not api and not vulncheck:
@@ -146,13 +126,28 @@ def main(api, cve, demo, epss, file, cvss, output, threads, verbose, list, no_co
         else:
             sem.acquire()
             t = threading.Thread(target=worker, args=(cve.upper().strip(), cvss_threshold, epss_threshold, verbose,
-                                                      sem, color_enabled, output, api, vulncheck, vulncheck_kev))
+                                                      sem, color_enabled, output, api, vulncheck, vulncheck_kev, results))
             threads.append(t)
             t.start()
             time.sleep(throttle)
 
     for t in threads:
         t.join()
+
+    if json_file:
+        metadata = {
+            'generator': 'CVE Prioritizer',
+            'generation_date': datetime.utcnow().isoformat(),
+            'total_cves': len(cve_list),
+            'cvss_threshold': cvss_threshold,
+            'epss_threshold': epss_threshold,
+        }
+        output_data = {
+            'metadata': metadata,
+            'cves': results,
+        }
+        with open(json_file, 'w') as json_file:
+            json.dump(output_data, json_file, indent=4)
 
 
 if __name__ == '__main__':
