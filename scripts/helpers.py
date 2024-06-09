@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-# This file contains the functions that create the reports
+
+__author__ = "Mario Rojas"
+__license__ = "BSD 3-clause"
+__version__ = "1.6.0"
+__maintainer__ = "Mario Rojas"
+__status__ = "Production"
 
 import os
 import requests
@@ -9,12 +14,6 @@ from dotenv import load_dotenv
 from termcolor import colored
 
 from scripts.constants import EPSS_URL, NIST_BASE_URL, VULNCHECK_BASE_URL, VULNCHECK_KEV_BASE_URL
-
-__author__ = "Mario Rojas"
-__license__ = "BSD 3-clause"
-__version__ = "1.5.4"
-__maintainer__ = "Mario Rojas"
-__status__ = "Production"
 
 load_dotenv()
 

@@ -6,7 +6,7 @@ __version__ = "1.6.0"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
-from cve_prioritizer.cve_prioritizer import main
+from .cve_prioritizer import main
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
