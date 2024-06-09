@@ -1,16 +1,33 @@
-#!/usr/bin/env python3
-
 from setuptools import setup, find_packages
 
-setup(name='CVE Prioritizer',
-      version='0.1.0',
-      description='Check if a CVE should be prioritized based on iin CISAs KEV and its CVSS and EPSS scores',
-      author='Mario Rojas',
-      author_email='mariro_ch@hotmail.com',
-      url='',
-      packages=find_packages(include=['scripts']),
-      entry_points={
-        'console_scripts': []
-      },
-      install_requires=[],
-      )
+setup(
+    name='CVE_Prioritizer',
+    version='1.5.4',
+    author='Mario Rojas',
+    author_email='prioritizer@proton.me',
+    description='Streamline vulnerability patching with CVSS, EPSS, Known Exploited Vulnerabilities and more.',
+    long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
+    url='https://github.com/TURROKS/CVE_Prioritizer',
+    packages=find_packages(),
+    classifiers=[
+        'Programming Language :: Python :: 3',
+        'License :: OSI Approved :: BSD 3-Clause License',
+        'Operating System :: OS Independent',
+    ],
+    python_requires='>=3.6',
+    install_requires=[
+        'pandas',
+        'requests',
+        'setuptools',
+        'requests',
+        'python-dotenv',
+        'termcolor',
+        'click'
+    ],
+    entry_points={
+        'console_scripts': [
+            'cve_prioritizer=cve_prioritizer:main',
+        ],
+    },
+)
