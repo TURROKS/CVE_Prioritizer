@@ -14,7 +14,7 @@ CVE_Prioritizer leverages the correlation between CVSS and EPSS scores to enhanc
 While CVSS captures the fundamental properties of a vulnerability, EPSS offers data-driven threat information, 
 enabling you to better prioritize patching.
 
-![output.gif](misc/output.gif)
+![output.gif](https://raw.githubusercontent.com/TURROKS/CVE_Prioritizer/main/misc/output.gif)
 
 ## Combining CVSS, EPSS and CISA's Kev
 
@@ -25,7 +25,7 @@ The figure below shows the correlation between EPSS and CVSS scores based on dat
 produces prediction scores between 0 and 1 (0 and 100%) where higher scores suggest higher probability of exploit. 
 Each dot represents one or more vulnerabilities (CVEs). Some vulnerabilities are labeled for illustrative purposes.
 
-![cvss_comparison_scatter_density-1.png](misc/cvss_comparison_scatter_density-1.png)
+![cvss_comparison_scatter_density-1.png](https://raw.githubusercontent.com/TURROKS/CVE_Prioritizer/main/misc/cvss_comparison_scatter_density-1.png)
 
 First, observe how most vulnerabilities are concentrated near the bottom of the plot, and only a small percent of 
 vulnerabilities have EPSS scores above 50% (0.5). While there is some correlation between EPSS and CVSS scores, overall,
@@ -43,7 +43,7 @@ efforts.
 For the sake of discussion, consider the diagram below, which has been annotated to generally illustrate vulnerability 
 prioritization.
 
-![epss-v-cvss-5-16-thresh_sized.png](misc/epss-v-cvss-5-16-thresh_sized.png)
+![epss-v-cvss-5-16-thresh_sized.png](https://raw.githubusercontent.com/TURROKS/CVE_Prioritizer/main/misc/epss-v-cvss-5-16-thresh_sized.png)
 
 - Vulnerabilities in the **bottom left** represent those that have both a lower probability of being exploited, and would 
 incur a lower severity impact to the information system, and can therefore be **de-prioritized**. 
@@ -83,19 +83,23 @@ This approach categorizes vulnerabilities into five priority levels, allowing yo
 
 Below is a modified version of FIRST's recommendation after applying our own approach.
 
-![our_approach.png](misc/our_approach.png)
+![our_approach.png](https://raw.githubusercontent.com/TURROKS/CVE_Prioritizer/main/misc/our_approach.png)
 
 **Note:** You can define your own thresholds when running the tool to tailor the results 
 to your organization's risk appetite.
 
 ## Install
-- [Python 3](https://www.python.org/downloads/)
-- [Git](https://git-scm.com/downloads)
-  
-```
+
+### Github  
+```shell
 git clone https://github.com/TURROKS/CVE_Prioritizer.git
-cd ./CVE_Prioritizer/
+cd CVE_Prioritizer
 pip3 install -r requirements.txt
+```
+
+### pip
+```shell
+pip install --user cve_prioritizer
 ```
 
 ## Usage
@@ -132,7 +136,7 @@ user `-vck` or `vulnchek_kev` to select this source **(ONLY WORKS WITH NVD++)**.
 python3 cve_prioritizer.py -c CVE-2020-29127
 ```
 
-![single s.png](misc/single_s.png)
+![single s.png](https://raw.githubusercontent.com/TURROKS/CVE_Prioritizer/main/misc/single_s.png)
 
 #### List of CVEs
 
@@ -140,7 +144,7 @@ python3 cve_prioritizer.py -c CVE-2020-29127
 python3 cve_prioritizer.py -l CVE-2020-29127 CVE-2017-16885
 ```
 
-![list.png](misc/list.png)
+![list.png](https://raw.githubusercontent.com/TURROKS/CVE_Prioritizer/main/misc/list.png)
 
 #### File with CVEs
 
@@ -148,7 +152,7 @@ python3 cve_prioritizer.py -l CVE-2020-29127 CVE-2017-16885
 python3 cve_prioritizer.py -f ~\Desktop\CheckThisCVEs.txt
 ```
 
-![file.png](misc/file.png)
+![file.png](https://raw.githubusercontent.com/TURROKS/CVE_Prioritizer/main/misc/file.png)
 
 ### Outputs
 
@@ -159,7 +163,7 @@ Here are the available output options:
 
 **Summary Results (default):** Provides a concise summary, including the CVE-ID and its priority.
 
-![single_s.png](misc/single_s.png)
+![single_s.png](https://raw.githubusercontent.com/TURROKS/CVE_Prioritizer/main/misc/single_s.png)
 
 **Verbose Mode:** Enables detailed output with the following information for each CVE:
 
@@ -169,7 +173,7 @@ Here are the available output options:
 - CVSS Severity
 - CISA KEV Status (TRUE or FALSE)
 
-![single v.png](misc/single_v.png)
+![single v.png](https://raw.githubusercontent.com/TURROKS/CVE_Prioritizer/main/misc/single_v.png)
 
 **CSV File**
 
@@ -184,11 +188,11 @@ This outputs the verbose results independently of the terminal output that you u
 
 #### Contributing
 
-Please refer to [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines
+Please refer to [CONTRIBUTING.md](https://raw.githubusercontent.com/TURROKS/CVE_Prioritizer/main/CONTRIBUTING.md) for guidelines
 
 #### License
 
-This project is licensed under the BSD 3-Clause license - see the [LICENSE](license) file for details.
+This project is licensed under the BSD 3-Clause license - see the [LICENSE](https://raw.githubusercontent.com/TURROKS/CVE_Prioritizer/main/license) file for details.
 
 #### Contact
 

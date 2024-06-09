@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='CVE_Prioritizer',
-    version='1.6.0',
+    version='1.6.1',
     author='Mario Rojas',
     author_email='prioritizer@proton.me',
     description='Streamline vulnerability patching with CVSS, EPSS, Known Exploited Vulnerabilities and more.',
@@ -12,7 +12,7 @@ setup(
     packages=find_packages(),
     classifiers=[
         'Programming Language :: Python :: 3',
-        'License :: OSI Approved :: BSD 3-Clause License',
+        'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
     ],
     python_requires='>=3.6',
