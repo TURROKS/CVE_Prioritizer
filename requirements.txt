@@ -1,6 +1,5 @@
-setuptools
-requests
-python-dotenv
-termcolor
-pandas
-click
+click>=8.0.3
+pandas>=1.5.3
+python-dotenv>=0.19.2
+requests>=2.32.3
+termcolor>=2.2.0
