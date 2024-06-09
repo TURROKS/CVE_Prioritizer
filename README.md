@@ -181,15 +181,18 @@ python3 cve_prioritizer.py -c CVE-2020-4343 -o ~/Desktop/results.csv
 
 This outputs the verbose results independently of the terminal output that you use.
 
-### CVE Trends
 
-CVE Trends
-You can also utilize the `-d` or `--demo` flags to retrieve the T**op 10 Trending CVEs of the last 7 days** from CVE Trends. 
-This feature fetches real-time information from the [CVE Trends](https://cvetrends.com) website.
+#### Contributing
 
-![cve_trends_terminal.png](misc/cve_trends_terminal.png)
+Please refer to CONTRIBUTING.md for guidelines
 
-The provided data gives you insights into the most trending CVEs, enabling you to stay informed about the latest vulnerabilities.
+#### License
+
+This project is licensed under the BSD 3-Clause license - see the license file for details.
+
+#### Contact
+
+For questions or issues, please contact me at prioritizer@proton.me
 
 Happy Patching!
 
