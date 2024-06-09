@@ -1,23 +1,25 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "CVE Prioritizer"
-description = "Streamline vulnerability patching with CVSS, EPSS, and CISA's Known Exploited Vulnerabilities Prioritize actions based on real-time threat information, gain a competitive advantage, and stay informed about the latest trends."
 version = "1.5.4"
-dependencies = [
-    "setuptools",
-    "requests",
-    "pandas",
-    "python-dotenv",
-    "termcolor",
-    "click",
-]
-requires-python = ">=3.8"
+description = "Streamline vulnerability patching with CVSS, EPSS, and CISA's Known Exploited Vulnerabilities Prioritize actions based on real-time threat information, gain a competitive advantage, and stay informed about the latest trends."
+readme = "README.md"
+license = { text = "BSD 3-Clause"}
 authors = [
-    {name = "Mario Rojas", email = "cveprioritizer@proton.me"},
+    {name = "Mario Rojas", email = "prioritizer@proton.me"},
 ]
 maintainers = [
-  {name = "Mario Rojas", email = "cveprioritizer@proton.me"}
+  {name = "Mario Rojas", email = "prioritizer@proton.me"}
 ]
-
-readme = "README.md"
-license = {file = "LICENSE"}
+dependencies = [
+    "click>=8.0.3",
+    "pandas>=1.5.3",
+    "python-dotenv>=0.19.2",
+    "requests>=2.32.3",
+    "termcolor>=2.2.0"
+]
+requires-python = ">=3.8"
 keywords = ["CVE", "CVSS", "EPSS", "CISA", "Prioritize", "Vulnerability"]
