@@ -184,11 +184,11 @@ This outputs the verbose results independently of the terminal output that you u
 
 #### Contributing
 
-Please refer to ![CONTRIBUTING.md](CONTRIBUTING.md) for guidelines
+Please refer to [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines
 
 #### License
 
-This project is licensed under the BSD 3-Clause license - see the ![LICENSE](license) file for details.
+This project is licensed under the BSD 3-Clause license - see the [LICENSE](license) file for details.
 
 #### Contact
 
