@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 <!-- insertion marker -->
 ## [v1.6.1](https://github.com/TURROKS/CVE_Prioritizer/releases/tag/v1.6.1) - 2024-06-11
 
-<small>[Compare with latest](https://github.com/TURROKS/CVE_Prioritizer/compare/v1.4.0...v.1.6.1)</small>
+<small>[Compare with v.1.4.0](https://github.com/TURROKS/CVE_Prioritizer/compare/v1.4.0...v.1.6.1)</small>
 
 ### Added
 
