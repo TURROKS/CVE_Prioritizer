@@ -113,11 +113,31 @@ def nist_check(cve_id, api_key):
                             return results
                     elif unique_cve.get("cve").get("vulnStatus") == "Awaiting Analysis":
                         click.echo(f"{cve_id:<18}NIST Status: {unique_cve.get('cve').get('vulnStatus')}")
+                        results = {"cvss_version": "",
+                                   "cvss_baseScore": "",
+                                   "cvss_severity": "",
+                                   "cisa_kev": "",
+                                   "cpe": "",
+                                   "vector": ""}
+                        return results
             else:
                 click.echo(f"{cve_id:<18}Not Found in NIST NVD.")
-                exit()
+                results = {"cvss_version": "",
+                           "cvss_baseScore": "",
+                           "cvss_severity": "",
+                           "cisa_kev": "",
+                           "cpe": "",
+                           "vector": ""}
+                return results
         else:
             click.echo(f"{cve_id:<18}Error code {nvd_status_code}")
+            results = {"cvss_version": "",
+                       "cvss_baseScore": "",
+                       "cvss_severity": "",
+                       "cisa_kev": "",
+                       "cpe": "",
+                       "vector": ""}
+            return results
     except requests.exceptions.ConnectionError:
         click.echo(f"Unable to connect to NIST NVD, Check your Internet connection or try again")
         return None
@@ -194,11 +214,31 @@ def vulncheck_check(cve_id, api_key):
                             return results
                     elif unique_cve.get("vulnStatus") == "Awaiting Analysis":
                         click.echo(f"{cve_id:<18}NIST Status: {unique_cve.get('vulnStatus')}")
+                        results = {"cvss_version": "",
+                                   "cvss_baseScore": "",
+                                   "cvss_severity": "",
+                                   "cisa_kev": "",
+                                   "cpe": "",
+                                   "vector": ""}
+                        return results
             else:
                 click.echo(f"{cve_id:<18}Not Found in VulnCheck.")
-                exit()
+                results = {"cvss_version": "",
+                           "cvss_baseScore": "",
+                           "cvss_severity": "",
+                           "cisa_kev": "",
+                           "cpe": "",
+                           "vector": ""}
+                return results
         else:
             click.echo(f"{cve_id:<18}Error code {vc_status_code}")
+            results = {"cvss_version": "",
+                       "cvss_baseScore": "",
+                       "cvss_severity": "",
+                       "cisa_kev": "",
+                       "cpe": "",
+                       "vector": ""}
+            return results
     except requests.exceptions.ConnectionError:
         click.echo(f"Unable to connect to VulnCheck, Check your Internet connection or try again")
         return None
