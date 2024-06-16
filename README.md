@@ -1,41 +1,38 @@
-# CVE Prioritizer Tool
+# CVE Prioritizer
+
+CVE Prioritizer is a powerful tool that helps you prioritize vulnerability patching by combining
+[CVSS](https://nvd.nist.gov/vuln-metrics/cvss#), [EPSS](https://www.first.org/epss/data_stats),
+CISA's [Known Exploited Vulnerabilities](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) and VulnCheck's community resources (
+[NVD++](https://docs.vulncheck.com/community/nist-nvd/introduction),
+[KEV](https://docs.vulncheck.com/community/vulncheck-kev/introduction)).
+It provides valuable insights into the likelihood of exploitation and the
+potential impact of vulnerabilities on your information system.
 
 ![output.gif](https://raw.githubusercontent.com/TURROKS/CVE_Prioritizer/main/misc/output.gif)
 
-## Overview
+## Why Combine CVSS, EPSS, and CISA KEV?
 
-CVE_Prioritizer is a powerful tool that helps you prioritize vulnerability patching by combining 
-[CVSS](https://nvd.nist.gov/vuln-metrics/cvss#), [EPSS](https://www.first.org/epss/data_stats),  
-CISA's [Known Exploited Vulnerabilities](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) and VulnCheck's community resources (
-[NVD++](https://docs.vulncheck.com/community/nist-nvd/introduction), 
-[KEV](https://docs.vulncheck.com/community/vulncheck-kev/introduction)). 
-It provides valuable insights into the likelihood of exploitation and the 
-potential impact of vulnerabilities on your information system.
+CVE_Prioritizer leverages the correlation between CVSS and EPSS scores to enhance vulnerability remediation efforts.
+While CVSS captures the fundamental properties of a vulnerability, EPSS offers data-driven threat information,
+enabling you to better prioritize patching.
 
 ## Table of Contents
 
-1. [Overview](#overview)
-2. [Why Combine CVSS, EPSS and KEV?](#why-combine-cvss,-epss,and-cisa-kev?)
+1. [Why Combine CVSS, EPSS and KEV?](#why-combine-cvss,-epss,and-cisa-kev?)
+2. [Combining CVSS, EPSS and KEV](#combining-cvss,-epss,and-kev)
 3. [Our Approach](#our-approach)
 4. [Installation](#installation)
 5. [Usage](#usage)
-   - [Request API Keys](#request-api-keys)
-   - [Select Your CVE Data Source](#select-your-cve-data-source)
-   - [Choose Input Method](#choose-input-method)
-   - [Tailor the Output](#tailor-the-output)
-6. [Outputs](#outputs)
-7. [Examples](#examples)
-8. [Contributing](#contributing)
-9. [License](#license)
-10. [Contact](#contact)
+   - Request API Keys
+   - Select Your CVE Data Source
+   - Choose Input Method
+   - Tailor the Output
+6. [Examples](#examples)
+7. [Contributing](#contributing)
+8. [License](#license)
+9. [Contact](#contact)
 
-## Why Combine CVSS, EPSS, and CISA KEV?
-
-CVE_Prioritizer leverages the correlation between CVSS and EPSS scores to enhance vulnerability remediation efforts. 
-While CVSS captures the fundamental properties of a vulnerability, EPSS offers data-driven threat information, 
-enabling you to better prioritize patching.
-
-## Combining CVSS, EPSS and CISA's Kev
+## Combining CVSS, EPSS and KEV
 
 The team at FIRST did an amazing job explaining why one would want to combine CVSS and EPSS in their 
 [EPSS User Guide](https://www.first.org/epss/user-guide). The following material has been extracted from that document. 
