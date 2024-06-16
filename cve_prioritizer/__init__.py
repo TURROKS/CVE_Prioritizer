@@ -2,7 +2,7 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.6.3"
+__version__ = "1.6.4"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
