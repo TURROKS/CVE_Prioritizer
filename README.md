@@ -161,7 +161,7 @@ python3 cve_prioritizer.py -l CVE-2020-29127,CVE-2017-16885
 You can also provide a text file with a list of CVEs (one per line)
 
 ```
-python3 cve_prioritizer.py -f ~\Desktop\CheckThisCVEs.txt
+python3 cve_prioritizer.py -f ~\Desktop\CheckTheseCVEs.txt
 ```
 
 ![file.png](https://raw.githubusercontent.com/TURROKS/CVE_Prioritizer/main/misc/file.png)
