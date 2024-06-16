@@ -1,5 +1,9 @@
 # CVE Prioritizer Tool
 
+![output.gif](https://raw.githubusercontent.com/TURROKS/CVE_Prioritizer/main/misc/output.gif)
+
+## Overview
+
 CVE_Prioritizer is a powerful tool that helps you prioritize vulnerability patching by combining 
 [CVSS](https://nvd.nist.gov/vuln-metrics/cvss#), [EPSS](https://www.first.org/epss/data_stats),  
 CISA's [Known Exploited Vulnerabilities](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) and VulnCheck's community resources (
@@ -8,13 +12,28 @@ CISA's [Known Exploited Vulnerabilities](https://www.cisa.gov/known-exploited-vu
 It provides valuable insights into the likelihood of exploitation and the 
 potential impact of vulnerabilities on your information system.
 
-## Why Combine CVSS, EPSS, and CISA's KEV?
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Why Combine CVSS, EPSS and KEV?](#why-combine-cvss,-epss,and-cisa-kev?)
+3. [Our Approach](#our-approach)
+4. [Installation](#installation)
+5. [Usage](#usage)
+   - [Request API Keys](#request-api-keys)
+   - [Select Your CVE Data Source](#select-your-cve-data-source)
+   - [Choose Input Method](#choose-input-method)
+   - [Tailor the Output](#tailor-the-output)
+6. [Outputs](#outputs)
+7. [Examples](#examples)
+8. [Contributing](#contributing)
+9. [License](#license)
+10. [Contact](#contact)
+
+## Why Combine CVSS, EPSS, and CISA KEV?
 
 CVE_Prioritizer leverages the correlation between CVSS and EPSS scores to enhance vulnerability remediation efforts. 
 While CVSS captures the fundamental properties of a vulnerability, EPSS offers data-driven threat information, 
 enabling you to better prioritize patching.
-
-![output.gif](https://raw.githubusercontent.com/TURROKS/CVE_Prioritizer/main/misc/output.gif)
 
 ## Combining CVSS, EPSS and CISA's Kev
 
@@ -88,13 +107,13 @@ Below is a modified version of FIRST's recommendation after applying our own app
 **Note:** You can define your own thresholds when running the tool to tailor the results 
 to your organization's risk appetite.
 
-## Install
+## Installation
 
 ### Github  
 ```shell
 git clone https://github.com/TURROKS/CVE_Prioritizer.git
 cd CVE_Prioritizer
-pip3 install -r requirements.txt
+pip install -r requirements.txt
 ```
 
 ### pip
@@ -106,28 +125,23 @@ pip install --user cve_prioritizer
 
 To use CVE_Prioritizer effectively, follow these steps:
 
-1. Request your API keys to avoid public rate limits. 
-   - **NIST NVD:** Free API can be requested [here](https://nvd.nist.gov/developers/request-an-api-key) 
-   - **VULNCHECK (Fast):** Register [here](https://vulncheck.com/register), Settings > New Token.
-   - **Save APIs:** use the `-sa` or `--set-api` option to save your API Keys in your environment file (.env)
-2. Select your CVE Data source
-   - **NIST NVD:** This is the default source.
-   - **NVD++:** [VulnCheck's](https://vulncheck.com/nvd2) NVD2 solves NIST's API challenges with a reliable, persistent 
-connection to their Community NVD 2.0 API that operates at machine speed use `-vc` or `--vulncheck` to select this source.
-   - **VUNLCHECK KEV:** VulnCheck also provides a list of Known Exploited Vulnerabilities for free to the community. 
-user `-vck` or `vulnchek_kev` to select this source **(ONLY WORKS WITH NVD++)**.
-3. Choose one of the following input methods:
-   - **Single CVE:** Use the `-c` or `--cve` flags followed by the CVE ID.
-   - **List of CVEs:** Provide a **comma-separated** list of CVEs using the `-l` flag.
-   - **File with CVEs:** Import a file containing CVE IDs (one per line) using the `-f` flag.
+1. Request your API keys to avoid public rate limits:
+   - **NIST NVD:** Request [here](https://nvd.nist.gov/developers/request-an-api-key)
+   - **VULNCHECK (Fast):** Register [here](https://vulncheck.com/register).
+   - **Save APIs:** Use the `-sa` or `--set-api` option to save your API Keys in your `.env` file.
+2. Select your CVE Data source:
+   - **NIST NVD:** Default.
+   - **[NVD++](https://vulncheck.com/nvd2):** Use `-vc` or `--vulncheck`.
+   - **VulnCheck KEV:** Use `-vck` or `vulnchek_kev` **(ONLY WORKS WITH NVD++)**.
+3. Choose Input Method:
+   - **Single CVE:** Use the `-c` followed by the CVE ID.
+   - **List of CVEs:** Use `-l` followed by a **comma-separated** list of CVEs.
+   - **File with CVEs:** Use `-f` to import a file containing CVE IDs (one per line).
 4. Tailor the output according to your needs:
-   - Use the `-v` or `--verbose` flags for detailed information, including EPSS Score, CVSS Base Score, CVSS Version, 
-   CVSS Severity, and CISA KEV status.
-   - Define custom thresholds using the `--cvss` and/or `--epss` flags to align the results with your organization's 
+   - Use the `-v` or `--verbose` for detailed information.
+   - Define custom thresholds with `--cvss` and/or `--epss` to align the results with your organization's
    risk appetite.
-   - Define the number of concurrent threads by using the `-t` or `--threads` flags, the default and recommended number
-   is 100 to avoid API rate limitations.
-   - 
+   - Define the number of concurrent threads with `-t` or `--threads` (default: 100).
 
 ### Examples
 
@@ -141,7 +155,7 @@ python3 cve_prioritizer.py -c CVE-2020-29127
 #### List of CVEs
 
 ```
-python3 cve_prioritizer.py -l CVE-2020-29127 CVE-2017-16885
+python3 cve_prioritizer.py -l CVE-2020-29127,CVE-2017-16885
 ```
 
 ![list.png](https://raw.githubusercontent.com/TURROKS/CVE_Prioritizer/main/misc/list.png)
@@ -168,11 +182,16 @@ Here are the available output options:
 
 **Verbose Mode:** Enables detailed output with the following information for each CVE:
 
+- CVE ID
+- Priority
 - EPSS Score
 - CVSS Base Score
 - CVSS Version
 - CVSS Severity
-- CISA KEV Status (TRUE or FALSE)
+- KEV Status (TRUE or FALSE)
+- Vendor
+- Product
+- CVSS Vector
 
 ![single v.png](https://raw.githubusercontent.com/TURROKS/CVE_Prioritizer/main/misc/single_v.png)
 
@@ -181,11 +200,12 @@ Here are the available output options:
 You can save the results to a CSV file by using the `-o` or `--output` flags
 
 ```
-python3 cve_prioritizer.py -c CVE-2020-4343 -o ~/Desktop/results.csv
+python3 cve_prioritizer.py -f cve_list.txt -o ~/Desktop/prioritized.csv
 ```
 
-This outputs the verbose results independently of the terminal output that you use.
+![output_file.png](https://raw.githubusercontent.com/TURROKS/CVE_Prioritizer/main/misc/output_file.png)
 
+This outputs the verbose results independently of the terminal output that you use.
 
 #### Contributing
 
@@ -193,7 +213,7 @@ Please refer to [CONTRIBUTING.md](https://raw.githubusercontent.com/TURROKS/CVE_
 
 #### License
 
-This project is licensed under the BSD 3-Clause license - see the [LICENSE](https://raw.githubusercontent.com/TURROKS/CVE_Prioritizer/main/docs/license) file for details.
+This project is licensed under the BSD 3-Clause license - see the [LICENSE](https://raw.githubusercontent.com/TURROKS/CVE_Prioritizer/main/LICENSE) file for details.
 
 #### Contact
 
