@@ -13,9 +13,8 @@
 .idea/**/shelf
 /misc/Tests/
 .env
-
 test_*
-
+.idea/
 # AWS User-specific
 .idea/**/aws.xml
 
