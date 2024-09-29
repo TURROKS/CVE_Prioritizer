@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "CVE Prioritizer"
-version = "1.6.4"
+version = "1.7.0"
 description = "Streamline vulnerability patching with CVSS, EPSS, and CISA's Known Exploited Vulnerabilities Prioritize actions based on real-time threat information, gain a competitive advantage, and stay informed about the latest trends."
 readme = "README.md"
 license = { text = "BSD 3-Clause"}
