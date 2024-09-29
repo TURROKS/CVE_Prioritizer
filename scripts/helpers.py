@@ -189,13 +189,19 @@ def vulncheck_check(cve_id, api_key):
         vc_status_code = vulncheck_response.status_code
 
         if vc_status_code == 200:
-            cisa_kev = False
+            vc_kev = False
+            vc_used_by_ransomware = 'Error'
             if vulncheck_response.json().get("_meta").get("total_documents") > 0:
                 for unique_cve in vulncheck_response.json().get("data"):
 
                     # Check if present in CISA's KEV
                     if unique_cve.get("cisaExploitAdd"):
-                        cisa_kev = True
+                        vc_kev = True
+
+                        # Check ransomware use
+                        vulncheck_url = VULNCHECK_KEV_BASE_URL + f"?cve={cve_id}"
+                        vulncheck_response = requests.get(vulncheck_url, headers=header, params=params).json()
+                        vc_used_by_ransomware = str(vulncheck_response.get("data")[0].get("knownRansomwareCampaignUse")).upper()
 
                     try:
                         cpe = unique_cve.get("configurations")[0].get("nodes")[0].get("cpeMatch")[0].get(
@@ -209,7 +215,8 @@ def vulncheck_check(cve_id, api_key):
                             results = {"cvss_version": "CVSS 3.1",
                                        "cvss_baseScore": float(metric.get("cvssData").get("baseScore")),
                                        "cvss_severity": metric.get("cvssData").get("baseSeverity"),
-                                       "cisa_kev": cisa_kev,
+                                       "cisa_kev": vc_kev,
+                                       "ransomware": vc_used_by_ransomware,
                                        "cpe": cpe,
                                        "vector": metric.get("cvssData").get("vectorString")}
                             return results
@@ -218,7 +225,8 @@ def vulncheck_check(cve_id, api_key):
                             results = {"cvss_version": "CVSS 3.0",
                                        "cvss_baseScore": float(metric.get("cvssData").get("baseScore")),
                                        "cvss_severity": metric.get("cvssData").get("baseSeverity"),
-                                       "cisa_kev": cisa_kev,
+                                       "cisa_kev": vc_kev,
+                                       "ransomware": vc_used_by_ransomware,
                                        "cpe": cpe,
                                        "vector": metric.get("cvssData").get("vectorString")}
                             return results
@@ -227,7 +235,8 @@ def vulncheck_check(cve_id, api_key):
                             results = {"cvss_version": "CVSS 2.0",
                                        "cvss_baseScore": float(metric.get("cvssData").get("baseScore")),
                                        "cvss_severity": metric.get("baseSeverity"),
-                                       "cisa_kev": cisa_kev,
+                                       "cisa_kev": vc_kev,
+                                       "ransomware": vc_used_by_ransomware,
                                        "cpe": cpe,
                                        "vector": metric.get("cvssData").get("vectorString")}
                             return results
@@ -237,6 +246,7 @@ def vulncheck_check(cve_id, api_key):
                                    "cvss_baseScore": "",
                                    "cvss_severity": "",
                                    "cisa_kev": "",
+                                   "ransomware": "",
                                    "cpe": "",
                                    "vector": ""}
                         return results
@@ -246,6 +256,7 @@ def vulncheck_check(cve_id, api_key):
                            "cvss_baseScore": "",
                            "cvss_severity": "",
                            "cisa_kev": "",
+                           "ransomware": "",
                            "cpe": "",
                            "vector": ""}
                 return results
@@ -255,6 +266,7 @@ def vulncheck_check(cve_id, api_key):
                        "cvss_baseScore": "",
                        "cvss_severity": "",
                        "cisa_kev": "",
+                       "ransomware": "",
                        "cpe": "",
                        "vector": ""}
             return results
@@ -267,6 +279,9 @@ def vulncheck_kev(cve_id, api_key):
     """
     Check Vulncheck's KEV catalog
     """
+
+    vc_exploited = False
+    vc_used_by_ransomware = False
 
     try:
         vulncheck_key = None
@@ -285,15 +300,17 @@ def vulncheck_kev(cve_id, api_key):
             vulncheck_response = requests.get(vulncheck_url, headers=header, params=params).json()
 
             if vulncheck_response.get('data'):
-                return True
+                vc_exploited = True
+                vc_used_by_ransomware = str(vulncheck_response.get('data')[0].get('knownRansomwareCampaignUse')).upper()
+                return vc_exploited, vc_used_by_ransomware
             else:
-                return None
+                return vc_exploited, vc_used_by_ransomware
         else:
             click.echo("VulnCheck requires an API key")
             exit()
     except requests.exceptions.ConnectionError:
         click.echo(f"Unable to connect to VulnCheck, Check your Internet connection or try again")
-        return None
+        return None, None
 
 
 def colored_print(priority):
@@ -362,7 +379,7 @@ def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_
             click.echo(f"{cve_id:<18}{priority:<13}")
     if working_file:
         working_file.write(f"{cve_id},{priority},{epss},{cvss_base_score},{cvss_version},{cvss_severity},"
-                           f"{kev},{source},{cpe},{vendor},{product},{vector}\n")
+                           f"{kev},{ransomware},{source},{cpe},{vendor},{product},{vector}\n")
 
 
 # Main function
@@ -373,8 +390,8 @@ def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, s
     """
     kev_source = 'CISA'
     if vc_kev:
-        exploited = vulncheck_kev(cve_id, api)
         cve_result = vulncheck_check(cve_id, api)
+        exploited = vulncheck_kev(cve_id, api)[0]
         kev_source = 'VULNCHECK'
     elif nvd_plus:
         cve_result = vulncheck_check(cve_id, api)
@@ -398,23 +415,23 @@ def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, s
             if epss_result.get("epss") >= epss_score:
                 print_and_write(save_output, cve_id, 'Priority 1', epss_result.get('epss'),
                                 cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
-                                cve_result.get('cvss_severity'), '', kev_source, verbose_print,
+                                cve_result.get('cvss_severity'), '', '', kev_source, verbose_print,
                                 cve_result.get('cpe'), cve_result.get('vector'), colored_output)
             else:
                 print_and_write(save_output, cve_id, 'Priority 2', epss_result.get('epss'),
                                 cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
-                                cve_result.get('cvss_severity'), '', kev_source, verbose_print,
+                                cve_result.get('cvss_severity'), '', '', kev_source, verbose_print,
                                 cve_result.get('cpe'), cve_result.get('vector'), colored_output)
         else:
             if epss_result.get("epss") >= epss_score:
                 print_and_write(save_output, cve_id, 'Priority 3', epss_result.get('epss'),
                                 cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
-                                cve_result.get('cvss_severity'), '', kev_source, verbose_print,
+                                cve_result.get('cvss_severity'), '', '', kev_source, verbose_print,
                                 cve_result.get('cpe'), cve_result.get('vector'), colored_output)
             else:
                 print_and_write(save_output, cve_id, 'Priority 4', epss_result.get('epss'),
                                 cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
-                                cve_result.get('cvss_severity'), '', kev_source, verbose_print,
+                                cve_result.get('cvss_severity'), '', '', kev_source, verbose_print,
                                 cve_result.get('cpe'), cve_result.get('vector'), colored_output)
         if results is not None:
             results.append({
