@@ -13,7 +13,7 @@ import click
 from dotenv import load_dotenv
 from termcolor import colored
 
-from scripts.constants import EPSS_URL, NIST_BASE_URL, VULNCHECK_BASE_URL, VULNCHECK_KEV_BASE_URL
+from scripts.constants import EPSS_URL, NIST_BASE_URL, VULNCHECK_BASE_URL, VULNCHECK_KEV_BASE_URL, CISA_KEV_URL
 
 load_dotenv()
 
@@ -70,12 +70,25 @@ def nist_check(cve_id, api_key):
 
         if nvd_status_code == 200:
             cisa_kev = False
+            ransomware = ''
+
             if nvd_response.json().get("totalResults") > 0:
                 for unique_cve in nvd_response.json().get("vulnerabilities"):
 
                     # Check if present in CISA's KEV
                     if unique_cve.get("cve").get("cisaExploitAdd"):
                         cisa_kev = True
+
+                        # Check ransomware use
+                        kev_data = requests.get(CISA_KEV_URL)
+
+                        if kev_data.status_code == 200:
+                            kev_list = kev_data.json()
+                            for entry in kev_list.get('vulnerabilities'):
+                                if entry.get('cveID') == cve_id:
+                                    ransomware = str(entry.get('knownRansomwareCampaignUse')).upper()
+                        else:
+                            ransomware = 'Error'
 
                     try:
                         cpe = unique_cve.get("cve").get("configurations")[0].get("nodes")[0].get("cpeMatch")[0].get(
@@ -90,6 +103,7 @@ def nist_check(cve_id, api_key):
                                        "cvss_baseScore": float(metric.get("cvssData").get("baseScore")),
                                        "cvss_severity": metric.get("cvssData").get("baseSeverity"),
                                        "cisa_kev": cisa_kev,
+                                       "ransomware": ransomware,
                                        "cpe": cpe,
                                        "vector": metric.get("cvssData").get("vectorString")}
                             return results
@@ -99,6 +113,7 @@ def nist_check(cve_id, api_key):
                                        "cvss_baseScore": float(metric.get("cvssData").get("baseScore")),
                                        "cvss_severity": metric.get("cvssData").get("baseSeverity"),
                                        "cisa_kev": cisa_kev,
+                                       "ransomware": ransomware,
                                        "cpe": cpe,
                                        "vector": metric.get("cvssData").get("vectorString")}
                             return results
@@ -108,6 +123,7 @@ def nist_check(cve_id, api_key):
                                        "cvss_baseScore": float(metric.get("cvssData").get("baseScore")),
                                        "cvss_severity": metric.get("baseSeverity"),
                                        "cisa_kev": cisa_kev,
+                                       "ransomware": ransomware,
                                        "cpe": cpe,
                                        "vector": metric.get("cvssData").get("vectorString")}
                             return results
@@ -117,6 +133,7 @@ def nist_check(cve_id, api_key):
                                    "cvss_baseScore": "",
                                    "cvss_severity": "",
                                    "cisa_kev": "",
+                                   "ransomware": "",
                                    "cpe": "",
                                    "vector": ""}
                         return results
@@ -126,6 +143,7 @@ def nist_check(cve_id, api_key):
                            "cvss_baseScore": "",
                            "cvss_severity": "",
                            "cisa_kev": "",
+                           "ransomware": "",
                            "cpe": "",
                            "vector": ""}
                 return results
@@ -135,6 +153,7 @@ def nist_check(cve_id, api_key):
                        "cvss_baseScore": "",
                        "cvss_severity": "",
                        "cisa_kev": "",
+                       "ransomware": "",
                        "cpe": "",
                        "vector": ""}
             return results
@@ -321,8 +340,8 @@ def truncate_string(input_string, max_length):
 
 
 # Function manages the outputs
-def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_version, cvss_severity, kev, source,
-                    verbose, cpe, vector, no_color):
+def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_version, cvss_severity, kev, ransomware,
+                    source, verbose, cpe, vector, no_color):
     color_priority = colored_print(priority)
     vendor, product = parse_cpe(cpe)
 
@@ -330,11 +349,11 @@ def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_
         if no_color:
             click.echo(
                 f"{cve_id:<18}{color_priority:<22}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}"
-                f"{kev:<10}{truncate_string(vendor, 15):<18}"
+                f"{kev:<7}{ransomware:<12}{truncate_string(vendor, 15):<18}"
                 f"{truncate_string(product, 20):<23}{vector}")
         else:
             click.echo(f"{cve_id:<18}{priority:<13}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}"
-                       f"{kev:<10}{truncate_string(vendor, 15):<18}"
+                       f"{kev:<7}{ransomware:<12}{truncate_string(vendor, 15):<18}"
                        f"{truncate_string(product, 20):<23}{vector}")
     else:
         if no_color:
@@ -370,9 +389,10 @@ def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, s
 
     try:
         if exploited:
+            ransomware = cve_result.get('ransomware')
             print_and_write(save_output, cve_id, 'Priority 1+', epss_result.get('epss'),
                             cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
-                            cve_result.get('cvss_severity'), 'TRUE', kev_source, verbose_print,
+                            cve_result.get('cvss_severity'), 'TRUE', ransomware, kev_source, verbose_print,
                             cve_result.get('cpe'), cve_result.get('vector'), colored_output)
         elif cve_result.get("cvss_baseScore") >= cvss_score:
             if epss_result.get("epss") >= epss_score:
