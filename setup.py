@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='CVE_Prioritizer',
-    version='1.7.0',
+    version='1.7.1',
     author='Mario Rojas',
     author_email='prioritizer@proton.me',
     description='Streamline vulnerability patching with CVSS, EPSS, Known Exploited Vulnerabilities and more.',
