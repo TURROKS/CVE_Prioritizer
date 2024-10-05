@@ -7,6 +7,8 @@ __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
 import os
+import time
+
 import requests
 
 import click
@@ -163,7 +165,7 @@ def nist_check(cve_id, api_key):
 
 
 # Check Vulncheck NVD++
-def vulncheck_check(cve_id, api_key):
+def vulncheck_check(cve_id, api_key, kev_check):
     """
     Function collects VulnCheck NVD2 Data
     """
@@ -194,14 +196,15 @@ def vulncheck_check(cve_id, api_key):
             if vulncheck_response.json().get("_meta").get("total_documents") > 0:
                 for unique_cve in vulncheck_response.json().get("data"):
 
-                    # Check if present in CISA's KEV
-                    if unique_cve.get("cisaExploitAdd"):
+                    if kev_check:
+                        vc_kev, vc_used_by_ransomware = vulncheck_kev(unique_cve.get('id'), api_key)
+                    elif unique_cve.get("cisaExploitAdd"):  # Check if present in CISA's KEV
                         vc_kev = True
-
-                        # Check ransomware use
-                        vulncheck_url = VULNCHECK_KEV_BASE_URL + f"?cve={cve_id}"
-                        vulncheck_response = requests.get(vulncheck_url, headers=header, params=params).json()
-                        vc_used_by_ransomware = str(vulncheck_response.get("data")[0].get("knownRansomwareCampaignUse")).upper()
+                        if os.getenv('NIST_API'):
+                            vc_used_by_ransomware = nist_check(unique_cve.get('id'), os.getenv('NIST_API')).get('ransomware', '')
+                            time.sleep(1)
+                        else:
+                            vc_used_by_ransomware = 'NO_NVD_KEY'
 
                     try:
                         cpe = unique_cve.get("configurations")[0].get("nodes")[0].get("cpeMatch")[0].get(
@@ -390,11 +393,12 @@ def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, s
     """
     kev_source = 'CISA'
     if vc_kev:
-        cve_result = vulncheck_check(cve_id, api)
-        exploited = vulncheck_kev(cve_id, api)[0]
+        cve_result = vulncheck_check(cve_id, api, vc_kev)
+        # exploited = vulncheck_kev(cve_id, api)[0]
+        exploited = cve_result.get('cisa_kev')
         kev_source = 'VULNCHECK'
     elif nvd_plus:
-        cve_result = vulncheck_check(cve_id, api)
+        cve_result = vulncheck_check(cve_id, api, vc_kev)
         exploited = cve_result.get("cisa_kev")
     else:
         if 'vulncheck' in str(api).lower():
