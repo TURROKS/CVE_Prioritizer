@@ -2,13 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
-<!-- insertion marker -->
-## [v1.6.1](https://github.com/TURROKS/CVE_Prioritizer/releases/tag/v1.6.1) - 2024-06-11
+The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
+and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-<small>[Compare with v.1.4.0](https://github.com/TURROKS/CVE_Prioritizer/compare/v1.4.0...v.1.6.1)</small>
+<!-- insertion marker -->
+## [v1.7.2](https://github.com/TURROKS/CVE_Prioritizer/releases/tag/v1.7.2) - 2024-10-06
+
+<small>[Compare with v1.6.1](https://github.com/TURROKS/CVE_Prioritizer/compare/v1.6.1...v1.7.2)</small>
 
 ### Added
 
+- Added alternative kev source for vulncheck ([8dd2ca4](https://github.com/TURROKS/CVE_Prioritizer/commit/8dd2ca45a78b1b829d1235e1ea1b408ac573f008) by Mario Rojas).
+- Added support for VulnCheck-CISA KEV ransomware checks ([1acd6fc](https://github.com/TURROKS/CVE_Prioritizer/commit/1acd6fcf2f104d9cdc1f6cd3ce9d4a6557509a69) by Mario Rojas).
+- Added support for NIST-CISA KEV ransomware checks ([555012e](https://github.com/TURROKS/CVE_Prioritizer/commit/555012e2ac0f425b1eeaa2ce89aa4cb3f6c148e7) by Mario Rojas).
+- Added Table of Contents and output image ([174f1ef](https://github.com/TURROKS/CVE_Prioritizer/commit/174f1efdcc1e816df9e38ef8acb7447a5a429c35) by Mario Rojas).
+- Added SECURITY.md ([3c1a394](https://github.com/TURROKS/CVE_Prioritizer/commit/3c1a3940d9944f33e72c474c887a5f8540323095) by Mario Rojas).
+
+### Fixed
+
+- Fix ransomware issue with vulncheck kev ([a71c80f](https://github.com/TURROKS/CVE_Prioritizer/commit/a71c80fc18116a19cb5e68e5dc1c587ef5e7238d) by Mario Rojas).
+- Fixed typo ([6544ea6](https://github.com/TURROKS/CVE_Prioritizer/commit/6544ea6da1737821cd2de0748d4c25f6d5415ddc) by Mario Rojas).
+- Fixed error handling for CVEs in awaiting analysis status ([aca5f2a](https://github.com/TURROKS/CVE_Prioritizer/commit/aca5f2a4640d5e2d177267f5c1f3645460b2381b) by Mario Rojas).
+
+### Removed
+
+- Removed Jetbrains config files ([b80687d](https://github.com/TURROKS/CVE_Prioritizer/commit/b80687dc33657a3c43666c884b53295562f713fc) by Mario Rojas).
+
+## [v1.6.1](https://github.com/TURROKS/CVE_Prioritizer/releases/tag/v1.6.1) - 2024-06-11
+
+<small>[Compare with v1.4.0](https://github.com/TURROKS/CVE_Prioritizer/compare/v1.4.0...v1.6.1)</small>
+
+### Added
+
+- Added Changelog ([46637d5](https://github.com/TURROKS/CVE_Prioritizer/commit/46637d5ce252f9893451689312185008120caedf) by Mario Rojas).
 - Added JSON output ([0595638](https://github.com/TURROKS/CVE_Prioritizer/commit/0595638b6fd48513417988e94b646a939c3c9454) by Mario Rojas).
 - Added VulnCheck KEV support ([6e3e396](https://github.com/TURROKS/CVE_Prioritizer/commit/6e3e3965bc9e475a77f3b78ec8d163393feffa4e) by Mario Rojas).
 - Added NVD++ as an alternative source of CVE data ([48be451](https://github.com/TURROKS/CVE_Prioritizer/commit/48be451e534cd26146ddb7d7924fcd3980845456) by Mario Rojas).
@@ -24,7 +50,6 @@ All notable changes to this project will be documented in this file.
 - Fixed small typo on vulncheck_check function and standardized var names ([b4fdd98](https://github.com/TURROKS/CVE_Prioritizer/commit/b4fdd98bfc985aede5a1b83f54362c2c83a55138) by Mario Rojas).
 - Fix invalid escape sequences by using raw strings ([679d275](https://github.com/TURROKS/CVE_Prioritizer/commit/679d275de42c23b756f0e7fcc1bc79fe9335eed7) by zevaryx).
 
-<!-- insertion marker -->
 ## [v1.4.0](https://github.com/TURROKS/CVE_Prioritizer/releases/tag/v1.4.0) - 2023-12-10
 
 <small>[Compare with v1.3.0](https://github.com/TURROKS/CVE_Prioritizer/compare/v1.3.0...v1.4.0)</small>
