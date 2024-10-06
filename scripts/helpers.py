@@ -2,7 +2,7 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.7.1"
+__version__ = "1.7.2"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -194,17 +194,22 @@ def vulncheck_check(cve_id, api_key, kev_check):
             vc_kev = False
             vc_used_by_ransomware = 'Error'
             if vulncheck_response.json().get("_meta").get("total_documents") > 0:
+
+                # Check ransomware use
+                kev_data = requests.get(CISA_KEV_URL)
+
                 for unique_cve in vulncheck_response.json().get("data"):
 
                     if kev_check:
                         vc_kev, vc_used_by_ransomware = vulncheck_kev(unique_cve.get('id'), api_key)
                     elif unique_cve.get("cisaExploitAdd"):  # Check if present in CISA's KEV
                         vc_kev = True
-                        if os.getenv('NIST_API'):
-                            vc_used_by_ransomware = nist_check(unique_cve.get('id'), os.getenv('NIST_API')).get('ransomware', '')
-                            time.sleep(1)
-                        else:
-                            vc_used_by_ransomware = 'NO_NVD_KEY'
+
+                        if kev_data.status_code == 200:
+                            kev_list = kev_data.json()
+                            for entry in kev_list.get('vulnerabilities'):
+                                if entry.get('cveID') == cve_id:
+                                    vc_used_by_ransomware = str(entry.get('knownRansomwareCampaignUse')).upper()
 
                     try:
                         cpe = unique_cve.get("configurations")[0].get("nodes")[0].get("cpeMatch")[0].get(
