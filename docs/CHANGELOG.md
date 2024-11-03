@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- insertion marker -->
+## [v1.8.0](https://github.com/TURROKS/CVE_Prioritizer/releases/tag/v1.8.0) - 2024-11-03
+
+<small>[Compare with v1.7.2](https://github.com/TURROKS/CVE_Prioritizer/compare/v1.7.2...v1.8.0)</small>
+
 ## [v1.7.2](https://github.com/TURROKS/CVE_Prioritizer/releases/tag/v1.7.2) - 2024-10-06
 
 <small>[Compare with v1.6.1](https://github.com/TURROKS/CVE_Prioritizer/compare/v1.6.1...v1.7.2)</small>

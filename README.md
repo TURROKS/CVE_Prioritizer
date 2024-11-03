@@ -134,7 +134,7 @@ To use CVE_Prioritizer effectively, follow these steps:
    - **Single CVE:** Use the `-c` followed by the CVE ID.
    - **List of CVEs:** Use `-l` followed by a **comma-separated** list of CVEs.
    - **File with CVEs:** Use `-f` to import a file containing CVE IDs (one per line).
-   	   - **Import Vulnerability Reports:** Use the -f flag along with --nessus or --openvas to automatically
+   	   - **Import Vulnerability Reports:** Use the `-f` flag along with `--nessus` or `--openvas` to automatically
    	   ingest CVEs from Nessus or OpenVAS scan reports.
 4. Tailor the output according to your needs:
    - Use the `-v` or `--verbose` for detailed information.
