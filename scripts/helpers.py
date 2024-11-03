@@ -2,20 +2,18 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.7.2"
+__version__ = "1.8.0"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
 import os
-import time
-
+import re
 import requests
-
 import click
 from dotenv import load_dotenv
 from termcolor import colored
-
 from scripts.constants import EPSS_URL, NIST_BASE_URL, VULNCHECK_BASE_URL, VULNCHECK_KEV_BASE_URL, CISA_KEV_URL
+import xml.etree.ElementTree as ET
 
 load_dotenv()
 
@@ -25,25 +23,32 @@ def epss_check(cve_id):
     """
     Function collects EPSS from FIRST.org
     """
-
     try:
         epss_url = EPSS_URL + f"?cve={cve_id}"
         epss_response = requests.get(epss_url)
-        epss_status_code = epss_response.status_code
+        epss_response.raise_for_status()
 
-        if epss_status_code == 200:
-            if epss_response.json().get("total") > 0:
-                for cve in epss_response.json().get("data"):
-                    results = {"epss": float(cve.get("epss")),
-                               "percentile": int(float(cve.get("percentile")) * 100)}
-                    return results
-            else:
-                click.echo(f"{cve_id:<18}Not Found in EPSS.")
+        response_data = epss_response.json()
+        if epss_response.json().get("total") > 0:
+            for cve in epss_response.json().get("data"):
+                results = {"epss": float(cve.get("epss")),
+                           "percentile": int(float(cve.get("percentile")) * 100)}
+                return results
         else:
-            click.echo(f"Error connecting to EPSS - {epss_status_code}")
+            click.echo(f"{cve_id:<18}Not Found in EPSS.")
+            return {"epss": None, "percentile": None}
+    except requests.exceptions.HTTPError as http_err:
+        click.echo(f"HTTP error occurred: {http_err}")
     except requests.exceptions.ConnectionError:
-        click.echo(f"Unable to connect to EPSS, Check your Internet connection or try again")
-        return None
+        click.echo("Unable to connect to EPSS, check your Internet connection or try again")
+    except requests.exceptions.Timeout:
+        click.echo("The request to EPSS timed out")
+    except requests.exceptions.RequestException as req_err:
+        click.echo(f"An error occurred: {req_err}")
+    except ValueError as val_err:
+        click.echo(f"Error processing the response: {val_err}")
+
+    return {"epss": None, "percentile": None}
 
 
 # Check NIST NVD for the CVE
@@ -51,117 +56,85 @@ def nist_check(cve_id, api_key):
     """
     Function collects NVD Data
     """
-
     try:
-        nvd_key = None
-
-        if api_key:
-            nvd_key = api_key
-        elif os.getenv('NIST_API'):
-            nvd_key = os.getenv('NIST_API')
+        nvd_key = api_key or os.getenv('NIST_API')
         nvd_url = NIST_BASE_URL + f"?cveId={cve_id}"
-        header = {'apiKey': f'{nvd_key}'}
+        headers = {'apiKey': nvd_key} if nvd_key else {}
 
-        # Check if API has been provided
-        if nvd_key:
-            nvd_response = requests.get(nvd_url, headers=header)
+        nvd_response = requests.get(nvd_url, headers=headers)
+        nvd_response.raise_for_status()
+
+        response_data = nvd_response.json()
+        if response_data.get("totalResults") > 0:
+            for unique_cve in response_data.get("vulnerabilities"):
+                cisa_kev = unique_cve.get("cve").get("cisaExploitAdd", False)
+                ransomware = ''
+                if cisa_kev:
+                    kev_data = requests.get(CISA_KEV_URL)
+                    kev_data.raise_for_status()
+                    kev_list = kev_data.json()
+                    for entry in kev_list.get('vulnerabilities', []):
+                        if entry.get('cveID') == cve_id:
+                            ransomware = str(entry.get('knownRansomwareCampaignUse')).upper()
+
+                cpe = unique_cve.get("cve").get("configurations", [{}])[0].get("nodes", [{}])[0].get("cpeMatch", [{}])[0].get("criteria", 'cpe:2.3:::::::::::')
+
+                metrics = unique_cve.get("cve").get("metrics", {})
+                for version in ["cvssMetricV31", "cvssMetricV30", "cvssMetricV2"]:
+                    if version in metrics:
+                        for metric in metrics[version]:
+                            return {
+                                "cvss_version": version.replace("cvssMetric", "CVSS "),
+                                "cvss_baseScore": float(metric.get("cvssData", {}).get("baseScore", 0)),
+                                "cvss_severity": metric.get("cvssData", {}).get("baseSeverity", ""),
+                                "cisa_kev": cisa_kev,
+                                "ransomware": ransomware,
+                                "cpe": cpe,
+                                "vector": metric.get("cvssData", {}).get("vectorString", "")
+                            }
+
+                if unique_cve.get("cve").get("vulnStatus") == "Awaiting Analysis":
+                    click.echo(f"{cve_id:<18}Awaiting NVD Analysis")
+                    return {
+                        "cvss_version": "",
+                        "cvss_baseScore": "",
+                        "cvss_severity": "",
+                        "cisa_kev": "",
+                        "ransomware": "",
+                        "cpe": "",
+                        "vector": ""
+                    }
         else:
-            nvd_response = requests.get(nvd_url)
-
-        nvd_status_code = nvd_response.status_code
-
-        if nvd_status_code == 200:
-            cisa_kev = False
-            ransomware = ''
-
-            if nvd_response.json().get("totalResults") > 0:
-                for unique_cve in nvd_response.json().get("vulnerabilities"):
-
-                    # Check if present in CISA's KEV
-                    if unique_cve.get("cve").get("cisaExploitAdd"):
-                        cisa_kev = True
-
-                        # Check ransomware use
-                        kev_data = requests.get(CISA_KEV_URL)
-
-                        if kev_data.status_code == 200:
-                            kev_list = kev_data.json()
-                            for entry in kev_list.get('vulnerabilities'):
-                                if entry.get('cveID') == cve_id:
-                                    ransomware = str(entry.get('knownRansomwareCampaignUse')).upper()
-                        else:
-                            ransomware = 'Error'
-
-                    try:
-                        cpe = unique_cve.get("cve").get("configurations")[0].get("nodes")[0].get("cpeMatch")[0].get(
-                            "criteria")
-                    except TypeError:
-                        cpe = 'cpe:2.3:::::::::::'
-
-                    # Collect CVSS Data
-                    if unique_cve.get("cve").get("metrics").get("cvssMetricV31"):
-                        for metric in unique_cve.get("cve").get("metrics").get("cvssMetricV31"):
-                            results = {"cvss_version": "CVSS 3.1",
-                                       "cvss_baseScore": float(metric.get("cvssData").get("baseScore")),
-                                       "cvss_severity": metric.get("cvssData").get("baseSeverity"),
-                                       "cisa_kev": cisa_kev,
-                                       "ransomware": ransomware,
-                                       "cpe": cpe,
-                                       "vector": metric.get("cvssData").get("vectorString")}
-                            return results
-                    elif unique_cve.get("cve").get("metrics").get("cvssMetricV30"):
-                        for metric in unique_cve.get("cve").get("metrics").get("cvssMetricV30"):
-                            results = {"cvss_version": "CVSS 3.0",
-                                       "cvss_baseScore": float(metric.get("cvssData").get("baseScore")),
-                                       "cvss_severity": metric.get("cvssData").get("baseSeverity"),
-                                       "cisa_kev": cisa_kev,
-                                       "ransomware": ransomware,
-                                       "cpe": cpe,
-                                       "vector": metric.get("cvssData").get("vectorString")}
-                            return results
-                    elif unique_cve.get("cve").get("metrics").get("cvssMetricV2"):
-                        for metric in unique_cve.get("cve").get("metrics").get("cvssMetricV2"):
-                            results = {"cvss_version": "CVSS 2.0",
-                                       "cvss_baseScore": float(metric.get("cvssData").get("baseScore")),
-                                       "cvss_severity": metric.get("baseSeverity"),
-                                       "cisa_kev": cisa_kev,
-                                       "ransomware": ransomware,
-                                       "cpe": cpe,
-                                       "vector": metric.get("cvssData").get("vectorString")}
-                            return results
-                    elif unique_cve.get("cve").get("vulnStatus") == "Awaiting Analysis":
-                        click.echo(f"{cve_id:<18}NIST Status: {unique_cve.get('cve').get('vulnStatus')}")
-                        results = {"cvss_version": "",
-                                   "cvss_baseScore": "",
-                                   "cvss_severity": "",
-                                   "cisa_kev": "",
-                                   "ransomware": "",
-                                   "cpe": "",
-                                   "vector": ""}
-                        return results
-            else:
-                click.echo(f"{cve_id:<18}Not Found in NIST NVD.")
-                results = {"cvss_version": "",
-                           "cvss_baseScore": "",
-                           "cvss_severity": "",
-                           "cisa_kev": "",
-                           "ransomware": "",
-                           "cpe": "",
-                           "vector": ""}
-                return results
-        else:
-            click.echo(f"{cve_id:<18}Error code {nvd_status_code}")
-            results = {"cvss_version": "",
-                       "cvss_baseScore": "",
-                       "cvss_severity": "",
-                       "cisa_kev": "",
-                       "ransomware": "",
-                       "cpe": "",
-                       "vector": ""}
-            return results
+            click.echo(f"{cve_id:<18}Not Found in NIST NVD.")
+            return {
+                "cvss_version": "",
+                "cvss_baseScore": "",
+                "cvss_severity": "",
+                "cisa_kev": "",
+                "ransomware": "",
+                "cpe": "",
+                "vector": ""
+            }
+    except requests.exceptions.HTTPError:
+        click.echo(f"{cve_id:<18}HTTP error occurred, check CVE ID or API Key")
     except requests.exceptions.ConnectionError:
-        click.echo(f"Unable to connect to NIST NVD, Check your Internet connection or try again")
-        return None
+        click.echo("Unable to connect to NIST NVD, check your Internet connection or try again")
+    except requests.exceptions.Timeout:
+        click.echo("The request to NIST NVD timed out")
+    except requests.exceptions.RequestException as req_err:
+        click.echo(f"An error occurred: {req_err}")
+    except ValueError as val_err:
+        click.echo(f"Error processing the response: {val_err}")
+
+    return {
+        "cvss_version": "",
+        "cvss_baseScore": "",
+        "cvss_severity": "",
+        "cisa_kev": "",
+        "ransomware": "",
+        "cpe": "",
+        "vector": ""
+    }
 
 
 # Check Vulncheck NVD++
@@ -169,118 +142,102 @@ def vulncheck_check(cve_id, api_key, kev_check):
     """
     Function collects VulnCheck NVD2 Data
     """
-
     try:
-        vulncheck_key = None
-        if api_key:
-            vulncheck_key = api_key
-        elif os.getenv('VULNCHECK_API'):
-            vulncheck_key = os.getenv('VULNCHECK_API')
+        vulncheck_key = api_key or os.getenv('VULNCHECK_API')
+        if not vulncheck_key:
+            click.echo("VulnCheck requires an API key")
+            return {
+                "cvss_version": "",
+                "cvss_baseScore": "",
+                "cvss_severity": "",
+                "cisa_kev": "",
+                "ransomware": "",
+                "cpe": "",
+                "vector": ""
+            }
 
         vulncheck_url = VULNCHECK_BASE_URL + f"?cve={cve_id}"
         header = {"accept": "application/json"}
         params = {"token": vulncheck_key}
 
-        # Check if API has been provided
-        if vulncheck_key:
-            vulncheck_response = requests.get(vulncheck_url, headers=header, params=params)
+        vulncheck_response = requests.get(vulncheck_url, headers=header, params=params)
+        vulncheck_response.raise_for_status()
+
+        response_data = vulncheck_response.json()
+        if response_data.get("_meta", {}).get("total_documents", 0) > 0:
+            kev_data = requests.get(CISA_KEV_URL)
+            kev_data.raise_for_status()
+            kev_list = kev_data.json()
+
+            for unique_cve in response_data.get("data", []):
+                vc_kev = False
+                vc_used_by_ransomware = ''
+                if kev_check:
+                    vc_kev, vc_used_by_ransomware = vulncheck_kev(unique_cve.get('id'), api_key)
+                elif unique_cve.get("cisaExploitAdd"):
+                    vc_kev = True
+                    for entry in kev_list.get('vulnerabilities', []):
+                        if entry.get('cveID') == cve_id:
+                            vc_used_by_ransomware = str(entry.get('knownRansomwareCampaignUse')).upper()
+
+                cpe = unique_cve.get("configurations", [{}])[0].get("nodes", [{}])[0].get("cpeMatch", [{}])[0].get("criteria", 'cpe:2.3:::::::::::')
+
+                metrics = unique_cve.get("metrics", {})
+                for version in ["cvssMetricV31", "cvssMetricV30", "cvssMetricV2"]:
+                    if version in metrics:
+                        for metric in metrics[version]:
+                            return {
+                                "cvss_version": version.replace("cvssMetric", "CVSS "),
+                                "cvss_baseScore": float(metric.get("cvssData", {}).get("baseScore", 0)),
+                                "cvss_severity": metric.get("cvssData", {}).get("baseSeverity", ""),
+                                "cisa_kev": vc_kev,
+                                "ransomware": vc_used_by_ransomware,
+                                "cpe": cpe,
+                                "vector": metric.get("cvssData", {}).get("vectorString", "")
+                            }
+
+                if unique_cve.get("vulnStatus") == "Awaiting Analysis":
+                    click.echo(f"{cve_id:<18}NIST Status: {unique_cve.get('vulnStatus')}")
+                    return {
+                        "cvss_version": "",
+                        "cvss_baseScore": "",
+                        "cvss_severity": "",
+                        "cisa_kev": "",
+                        "ransomware": "",
+                        "cpe": "",
+                        "vector": ""
+                    }
         else:
-            click.echo("VulnCheck requires an API key")
-            exit()
-
-        vc_status_code = vulncheck_response.status_code
-
-        if vc_status_code == 200:
-            vc_kev = False
-            vc_used_by_ransomware = 'Error'
-            if vulncheck_response.json().get("_meta").get("total_documents") > 0:
-
-                # Check ransomware use
-                kev_data = requests.get(CISA_KEV_URL)
-
-                for unique_cve in vulncheck_response.json().get("data"):
-
-                    if kev_check:
-                        vc_kev, vc_used_by_ransomware = vulncheck_kev(unique_cve.get('id'), api_key)
-                    elif unique_cve.get("cisaExploitAdd"):  # Check if present in CISA's KEV
-                        vc_kev = True
-
-                        if kev_data.status_code == 200:
-                            kev_list = kev_data.json()
-                            for entry in kev_list.get('vulnerabilities'):
-                                if entry.get('cveID') == cve_id:
-                                    vc_used_by_ransomware = str(entry.get('knownRansomwareCampaignUse')).upper()
-
-                    try:
-                        cpe = unique_cve.get("configurations")[0].get("nodes")[0].get("cpeMatch")[0].get(
-                            "criteria")
-                    except TypeError:
-                        cpe = 'cpe:2.3:::::::::::'
-
-                    # Collect CVSS Data
-                    if unique_cve.get("metrics").get("cvssMetricV31"):
-                        for metric in unique_cve.get("metrics").get("cvssMetricV31"):
-                            results = {"cvss_version": "CVSS 3.1",
-                                       "cvss_baseScore": float(metric.get("cvssData").get("baseScore")),
-                                       "cvss_severity": metric.get("cvssData").get("baseSeverity"),
-                                       "cisa_kev": vc_kev,
-                                       "ransomware": vc_used_by_ransomware,
-                                       "cpe": cpe,
-                                       "vector": metric.get("cvssData").get("vectorString")}
-                            return results
-                    elif unique_cve.get("metrics").get("cvssMetricV30"):
-                        for metric in unique_cve.get("metrics").get("cvssMetricV30"):
-                            results = {"cvss_version": "CVSS 3.0",
-                                       "cvss_baseScore": float(metric.get("cvssData").get("baseScore")),
-                                       "cvss_severity": metric.get("cvssData").get("baseSeverity"),
-                                       "cisa_kev": vc_kev,
-                                       "ransomware": vc_used_by_ransomware,
-                                       "cpe": cpe,
-                                       "vector": metric.get("cvssData").get("vectorString")}
-                            return results
-                    elif unique_cve.get("metrics").get("cvssMetricV2"):
-                        for metric in unique_cve.get("metrics").get("cvssMetricV2"):
-                            results = {"cvss_version": "CVSS 2.0",
-                                       "cvss_baseScore": float(metric.get("cvssData").get("baseScore")),
-                                       "cvss_severity": metric.get("baseSeverity"),
-                                       "cisa_kev": vc_kev,
-                                       "ransomware": vc_used_by_ransomware,
-                                       "cpe": cpe,
-                                       "vector": metric.get("cvssData").get("vectorString")}
-                            return results
-                    elif unique_cve.get("vulnStatus") == "Awaiting Analysis":
-                        click.echo(f"{cve_id:<18}NIST Status: {unique_cve.get('vulnStatus')}")
-                        results = {"cvss_version": "",
-                                   "cvss_baseScore": "",
-                                   "cvss_severity": "",
-                                   "cisa_kev": "",
-                                   "ransomware": "",
-                                   "cpe": "",
-                                   "vector": ""}
-                        return results
-            else:
-                click.echo(f"{cve_id:<18}Not Found in VulnCheck.")
-                results = {"cvss_version": "",
-                           "cvss_baseScore": "",
-                           "cvss_severity": "",
-                           "cisa_kev": "",
-                           "ransomware": "",
-                           "cpe": "",
-                           "vector": ""}
-                return results
-        else:
-            click.echo(f"{cve_id:<18}Error code {vc_status_code}")
-            results = {"cvss_version": "",
-                       "cvss_baseScore": "",
-                       "cvss_severity": "",
-                       "cisa_kev": "",
-                       "ransomware": "",
-                       "cpe": "",
-                       "vector": ""}
-            return results
+            click.echo(f"{cve_id:<18}Not Found in VulnCheck.")
+            return {
+                "cvss_version": "",
+                "cvss_baseScore": "",
+                "cvss_severity": "",
+                "cisa_kev": "",
+                "ransomware": "",
+                "cpe": "",
+                "vector": ""
+            }
+    except requests.exceptions.HTTPError:
+        click.echo(f"{cve_id:<18}HTTP error occurred, check CVE ID or API Key")
     except requests.exceptions.ConnectionError:
-        click.echo(f"Unable to connect to VulnCheck, Check your Internet connection or try again")
-        return None
+        click.echo("Unable to connect to VulnCheck, check your Internet connection or try again")
+    except requests.exceptions.Timeout:
+        click.echo("The request to VulnCheck timed out")
+    except requests.exceptions.RequestException as req_err:
+        click.echo(f"An error occurred: {req_err}")
+    except ValueError as val_err:
+        click.echo(f"Error processing the response: {val_err}")
+
+    return {
+        "cvss_version": "",
+        "cvss_baseScore": "",
+        "cvss_severity": "",
+        "cisa_kev": "",
+        "ransomware": "",
+        "cpe": "",
+        "vector": ""
+    }
 
 
 def vulncheck_kev(cve_id, api_key):
@@ -487,3 +444,44 @@ def update_env_file(file, key, value):
     # Write the changes back to the .env file
     with open(env_file_path, 'w') as file:
         file.writelines(env_lines)
+
+
+def is_valid_cve(cve_id):
+    return re.match(r'^CVE-\d{4}-\d{4,}$', cve_id) is not None
+
+
+def parse_report(file, report_type):
+    cve_ids = set()
+    if report_type == 'nessus':
+        try:
+            tree = ET.parse(file)
+            root = tree.getroot()
+            cve_ids.update(
+                cve.text.strip().upper()
+                for report_item in root.findall(".//ReportItem")
+                for cve in report_item.findall("cve")
+                if is_valid_cve(cve.text.strip().upper())
+            )
+            return cve_ids
+        except ET.ParseError as e:
+            click.echo(f"Error parsing XML file: {e}")
+            return []
+        except Exception as e:
+            click.echo(f"An error occurred: {e}")
+            return []
+    elif report_type == 'openvas':
+        try:
+            tree = ET.parse(file)
+            root = tree.getroot()
+            for nvt in root.findall(".//nvt"):
+                for cve in nvt.findall("cve"):
+                    if cve.text:
+                        cve_ids.add(cve.text.strip())
+            return list(cve_ids)
+        except ET.ParseError as e:
+            print(f"Error parsing XML file: {e}")
+            return []
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return []
+    return list(cve_ids)
