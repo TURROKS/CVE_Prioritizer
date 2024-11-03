@@ -2,7 +2,7 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.7.2"
+__version__ = "1.8.0"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 
 from scripts.constants import LOGO, SIMPLE_HEADER, VERBOSE_HEADER
-from scripts.helpers import update_env_file, worker
+from scripts.helpers import parse_report, update_env_file, worker
 
 load_dotenv()
 Throttle_msg = ''
@@ -40,14 +40,17 @@ Throttle_msg = ''
 @click.option('-sa', '--set-api', is_flag=True, help='Save API keys')
 @click.option('-vc', '--vulncheck', is_flag=True, help='Use NVD++ - Requires VulnCheck API')
 @click.option('-vck', '--vulncheck_kev', is_flag=True, help='Use Vulncheck KEV - Requires VulnCheck API')
+@click.option('--nessus', is_flag=True, help='Parse Nessus file')
+@click.option('--openvas', is_flag=True, help='Parse OpenVAS file')
 def main(api, cve, epss, file, cvss, output, threads, verbose, list, no_color, set_api, vulncheck, vulncheck_kev,
-         json_file):
+         json_file, nessus, openvas):
+
     # Global Arguments
     color_enabled = not no_color
     throttle_msg = ''
 
     # standard args
-    header = SIMPLE_HEADER
+    header = VERBOSE_HEADER if verbose else SIMPLE_HEADER
     epss_threshold = epss
     cvss_threshold = cvss
     sem = Semaphore(threads)
@@ -70,42 +73,30 @@ def main(api, cve, epss, file, cvss, output, threads, verbose, list, no_color, s
         click.echo(f"API key for {service} updated successfully.")
     if verbose:
         header = VERBOSE_HEADER
+
     if cve:
         cve_list.append(cve)
-        if not api:
-            if not os.getenv('NIST_API') and not vulncheck:
-                click.echo(LOGO + 'Warning: Using this tool without specifying a NIST API may result in errors'
-                           + '\n\n' + header)
-            else:
-                click.echo(LOGO + header)
-        else:
-            click.echo(LOGO + header)
     elif list:
         cve_list = list.split(',')
-        if not api:
-            if not os.getenv('NIST_API') and not vulncheck:
-                if len(cve_list) > 75:
-                    throttle_msg = 'Large number of CVEs detected, requests will be throttle to avoid API issues'
-                click.echo(LOGO + throttle_msg + '\n'
-                           + 'Warning: Using this tool without specifying a NIST API may result in errors' + '\n\n'
-                           + header)
-            else:
-                click.echo(LOGO + header)
-        else:
-            click.echo(LOGO + header)
     elif file:
-        cve_list = [line.rstrip() for line in file]
-        if not api:
-            if not os.getenv('NIST_API') and not vulncheck:
-                if len(cve_list) > 75:
-                    throttle_msg = "Large number of CVEs detected, requests will be throttle to avoid API issues"
-                click.echo(LOGO + throttle_msg + '\n'
-                           + 'Warning: Using this tool without specifying a NIST API may result in errors' + '\n\n'
-                           + header)
-            else:
-                click.echo(LOGO + header)
+        if nessus:
+            cve_list = parse_report(file, 'nessus')
+        elif openvas:
+            cve_list = parse_report(file, 'openvas')
         else:
-            click.echo(LOGO + header)
+            cve_list = [line.rstrip() for line in file]
+
+    if not api and not os.getenv('NIST_API') and not vulncheck:
+        if len(cve_list) > 75:
+            throttle_msg = 'Large number of CVEs detected, requests will be throttle to avoid API issues'
+            click.echo(LOGO + throttle_msg + '\n' +
+                       'Warning: Using this tool without specifying a NIST API may result in errors'
+                       + '\n\n' + header)
+        else:
+            click.echo(LOGO + 'Warning: Using this tool without specifying a NIST API may result in errors'
+                       + '\n\n' + header)
+    else:
+        click.echo(LOGO + header)
 
     if output:
         output.write("cve_id,priority,epss,cvss,cvss_version,cvss_severity,kev,ransomware,kev_source,cpe,vendor,"
@@ -126,7 +117,8 @@ def main(api, cve, epss, file, cvss, output, threads, verbose, list, no_color, s
         else:
             sem.acquire()
             t = threading.Thread(target=worker, args=(cve.upper().strip(), cvss_threshold, epss_threshold, verbose,
-                                                      sem, color_enabled, output, api, vulncheck, vulncheck_kev, results))
+                                                      sem, color_enabled, output, api, vulncheck, vulncheck_kev,
+                                                      results))
             threads.append(t)
             t.start()
             time.sleep(throttle)
