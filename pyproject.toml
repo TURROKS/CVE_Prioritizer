@@ -3,7 +3,7 @@ requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "CVE Prioritizer"
+name = "cve-prioritizer"
 version = "1.8.0"
 description = "Streamline vulnerability patching with CVSS, EPSS, and CISA's Known Exploited Vulnerabilities Prioritize actions based on real-time threat information, gain a competitive advantage, and stay informed about the latest trends."
 readme = "README.md"
