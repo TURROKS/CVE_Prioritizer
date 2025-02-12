@@ -2,7 +2,7 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.8.0"
+__version__ = "1.8.1"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -15,7 +15,7 @@ from threading import Semaphore
 
 import click
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, timezone
 
 from scripts.constants import LOGO, SIMPLE_HEADER, VERBOSE_HEADER
 from scripts.helpers import parse_report, update_env_file, worker
@@ -129,7 +129,7 @@ def main(api, cve, epss, file, cvss, output, threads, verbose, list, no_color, s
     if json_file:
         metadata = {
             'generator': 'CVE Prioritizer',
-            'generation_date': datetime.utcnow().isoformat(),
+            'generation_date': datetime.now(timezone.utc).isoformat(),
             'total_cves': len(cve_list),
             'cvss_threshold': cvss_threshold,
             'epss_threshold': epss_threshold,
