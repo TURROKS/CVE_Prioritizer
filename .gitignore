@@ -12,6 +12,8 @@
 .idea/**/dictionaries
 .idea/**/shelf
 /misc/Tests/
+/misc/logs.txt
+cve_prioritizer_logs.txt
 .env
 test_*
 current_*
