@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- insertion marker -->
+## Unreleased
+
+<small>[Compare with latest](https://github.com/TURROKS/CVE_Prioritizer/compare/v1.8.1...HEAD)</small>
+
+<!-- insertion marker -->
+## [v1.8.1](https://github.com/TURROKS/CVE_Prioritizer/releases/tag/v1.8.1) - 2025-02-12
+
+<small>[Compare with v1.8.0](https://github.com/TURROKS/CVE_Prioritizer/compare/v1.8.0...v1.8.1)</small>
+
+### Added
+
+- Add scripts section ([c29f233](https://github.com/TURROKS/CVE_Prioritizer/commit/c29f2332cde7d79e0c9f34c0a1811611a8fb73c9) by Fabian Affolter).
+
+### Fixed
+
+- Fix name entry ([4f9b981](https://github.com/TURROKS/CVE_Prioritizer/commit/4f9b98156beec8c5201b75b81254d03d37e15d25) by Fabian Affolter).
+
 ## [v1.8.0](https://github.com/TURROKS/CVE_Prioritizer/releases/tag/v1.8.0) - 2024-11-03
 
 <small>[Compare with v1.7.2](https://github.com/TURROKS/CVE_Prioritizer/compare/v1.7.2...v1.8.0)</small>
