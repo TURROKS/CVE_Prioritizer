@@ -6,11 +6,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- insertion marker -->
-## Unreleased
+## [v1.8.2](https://github.com/TURROKS/CVE_Prioritizer/releases/tag/v1.8.2) - 2025-03-06
 
-<small>[Compare with latest](https://github.com/TURROKS/CVE_Prioritizer/compare/v1.8.1...HEAD)</small>
+<small>[Compare with v1.8.1](https://github.com/TURROKS/CVE_Prioritizer/compare/v1.8.1...v1.8.2)</small>
 
-<!-- insertion marker -->
+### Fixed
+
+- Fix openvas parsing issue ([cfe9d25](https://github.com/TURROKS/CVE_Prioritizer/commit/cfe9d25cdfb6b88c15fe02207589d20c36c7008e) by Mario Rojas).
+
 ## [v1.8.1](https://github.com/TURROKS/CVE_Prioritizer/releases/tag/v1.8.1) - 2025-02-12
 
 <small>[Compare with v1.8.0](https://github.com/TURROKS/CVE_Prioritizer/compare/v1.8.0...v1.8.1)</small>
