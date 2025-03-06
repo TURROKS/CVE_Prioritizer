@@ -26,3 +26,4 @@ keywords = ["CVE", "CVSS", "EPSS", "CISA", "Prioritize", "Vulnerability"]
 
 [project.scripts]
 cve-prioritizer = "cve_prioritizer.cve_prioritizer:main"
+cve_prioritizer = "cve_prioritizer.cve_prioritizer:main"
