@@ -2,7 +2,7 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.8.1"
+__version__ = "1.8.2"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -510,9 +510,11 @@ def parse_report(file, report_type):
             tree = ET.parse(file)
             root = tree.getroot()
             for nvt in root.findall(".//nvt"):
-                for cve in nvt.findall("cve"):
-                    if cve.text:
-                        cve_ids.add(cve.text.strip())
+                # Look for ref elements that have type="cve"
+                for ref in nvt.findall(".//ref[@type='cve']"):
+                    cve = ref.get("id")
+                    if cve:
+                        cve_ids.add(cve.strip())
             return list(cve_ids)
         except ET.ParseError as e:
             print(f"Error parsing XML file: {e}")
