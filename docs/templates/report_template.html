@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CVE Prioritizer Report</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Roboto, sans-serif;
+            background: #f8f9fa;
+            margin: 0;
+            padding: 2rem;
+            color: #212529;
+        }
+        header {
+            margin-bottom: 2rem;
+        }
+        h1 {
+            margin-bottom: 0.2rem;
+        }
+        .meta {
+            font-size: 0.95rem;
+            color: #6c757d;
+        }
+        .cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .card {
+            background: white;
+            border-left: 5px solid #007acc;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 1rem 1.5rem;
+            flex: 1 1 200px;
+        }
+        .card h2 {
+            margin: 0;
+            font-size: 1.6rem;
+        }
+        .card p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .section {
+            margin-bottom: 3rem;
+        }
+        .section h2 {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 0.5rem;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            background: white;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+        th {
+            background-color: #f1f3f5;
+        }
+        .kev-true {
+            color: green;
+            font-weight: bold;
+        }
+        .kev-false {
+            color: #ccc;
+        }
+        .P1 { border-left: 4px solid #dc3545; }
+        .P2 { border-left: 4px solid #fd7e14; }
+        .P3 { border-left: 4px solid #0d6efd; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>CVE Prioritization Report</h1>
+    <p class="meta">
+        Generated on {{ metadata.generation_date }} |
+        <strong>{{ metadata.total_cves }} CVEs</strong> |
+        <a href="https://github.com/TURROKS/CVE_Prioritizer" target="_blank">CVE_Prioritizer</a>
+    </p>
+</header>
+
+<div class="cards">
+    <div class="card">
+        <h2>{{ metadata.total_cves }}</h2>
+        <p>Total CVEs</p>
+    </div>
+    {% set priorities = {} %}
+    {% set kev_total = 0 %}
+    {% for cve in cves %}
+        {% set _ = priorities.update({cve.priority: priorities.get(cve.priority, 0) + 1}) %}
+        {% if cve.kev == "TRUE" %}
+            {% set kev_total = kev_total + 1 %}
+        {% endif %}
+    {% endfor %}
+    {% for level, count in priorities.items()|sort %}
+    <div class="card">
+        <h2>{{ count }}</h2>
+        <p>Priority {{ level }}</p>
+    </div>
+    {% endfor %}
+    <div class="card">
+        <h2>{{ kev_total }}</h2>
+        <p>Listed in KEV</p>
+    </div>
+</div>
+
+{% for level, group in cves|groupby("priority") %}
+<div class="section {{ level }}">
+    <h2>Priority {{ level }} ({{ group|length }} CVEs)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>CVE ID</th>
+                <th>CVSS</th>
+                <th>EPSS</th>
+                <th>KEV</th>
+                <th>KEV Source</th>
+                <th>Vendor</th>
+                <th>Product</th>
+                <th>CPE</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cve in group %}
+            <tr>
+                <td>{{ cve.cve_id }}</td>
+                <td>{{ cve.cvss_base_score }}</td>
+                <td>{{ cve.epss }}</td>
+                <td class="{{ 'kev-true' if cve.kev == 'TRUE' else 'kev-false' }}">
+                    {{ '✅' if cve.kev == 'TRUE' else '—' }}
+                </td>
+                <td>{{ cve.kev_source }}</td>
+                <td>{{ cve.vendor or '' }}</td>
+                <td>{{ cve.product or '' }}</td>
+                <td>{{ cve.cpe }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endfor %}
+
+</body>
+</html>
