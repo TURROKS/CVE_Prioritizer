@@ -2,7 +2,7 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.8.3"
+__version__ = "1.9.0"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -11,6 +11,7 @@ import os
 import re
 import threading
 import time
+from email.policy import default
 from threading import Semaphore
 
 import click
@@ -42,8 +43,10 @@ Throttle_msg = ''
 @click.option('-vck', '--vulncheck_kev', is_flag=True, help='Use Vulncheck KEV - Requires VulnCheck API')
 @click.option('--nessus', is_flag=True, help='Parse Nessus file')
 @click.option('--openvas', is_flag=True, help='Parse OpenVAS file')
+@click.option('--report', type=click.Choice(['html', 'pdf']), help='Generate a report in HTML or PDF format')
+@click.option('--cvss-version', type=int, default=3, help='Preferred CVSS version (3 or 4)')
 def main(api, cve, epss, file, cvss, output, threads, verbose, list, no_color, set_api, vulncheck, vulncheck_kev,
-         json_file, nessus, openvas):
+         json_file, nessus, openvas, report, cvss_version):
 
     # Global Arguments
     color_enabled = not no_color
@@ -117,8 +120,8 @@ def main(api, cve, epss, file, cvss, output, threads, verbose, list, no_color, s
         else:
             sem.acquire()
             t = threading.Thread(target=worker, args=(cve.upper().strip(), cvss_threshold, epss_threshold, verbose,
-                                                      sem, color_enabled, output, api, vulncheck, vulncheck_kev,
-                                                      results))
+                                                      sem, color_enabled, cvss_version, output, api, vulncheck,
+                                                      vulncheck_kev, results))
             threads.append(t)
             t.start()
             time.sleep(throttle)
@@ -140,6 +143,27 @@ def main(api, cve, epss, file, cvss, output, threads, verbose, list, no_color, s
         }
         with open(json_file, 'w') as json_file:
             json.dump(output_data, json_file, indent=4)
+
+    if report:
+        from scripts.report_generator import generate_report
+
+        metadata = {
+            'generator': 'CVE Prioritizer',
+            'generation_date': datetime.now(timezone.utc).isoformat(),
+            'total_cves': len(cve_list),
+            'cvss_threshold': cvss_threshold,
+            'epss_threshold': epss_threshold,
+        }
+        output_data = {
+            'metadata': metadata,
+            'cves': results,
+        }
+
+        generate_report(
+            data=output_data,
+            output_path=f"report.{report}",
+            format=report
+        )
 
 
 if __name__ == '__main__':
