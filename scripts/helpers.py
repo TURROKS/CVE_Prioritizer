@@ -2,7 +2,7 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.8.3"
+__version__ = "1.9.0"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -68,7 +68,7 @@ def epss_check(cve_id):
 
 
 # Check NIST NVD for the CVE
-def nist_check(cve_id, api_key):
+def nist_check(cve_id, api_key, cvss_version):
     """
     Function collects NVD Data
     """
@@ -95,8 +95,14 @@ def nist_check(cve_id, api_key):
 
                 cpe = unique_cve.get("cve").get("configurations", [{}])[0].get("nodes", [{}])[0].get("cpeMatch", [{}])[0].get("criteria", 'cpe:2.3:::::::::::')
 
+                versions = ["cvssMetricV31", "cvssMetricV30", "cvssMetricV2"]
+
+                if cvss_version == 4:
+                    versions = ["cvssMetricV40", "cvssMetricV31", "cvssMetricV30", "cvssMetricV2"]
+
                 metrics = unique_cve.get("cve").get("metrics", {})
-                for version in ["cvssMetricV31", "cvssMetricV30", "cvssMetricV2"]:
+
+                for version in versions:
                     if version in metrics:
                         for metric in metrics[version]:
                             return {
@@ -161,7 +167,7 @@ def nist_check(cve_id, api_key):
 
 
 # Check Vulncheck NVD++
-def vulncheck_check(cve_id, api_key, kev_check):
+def vulncheck_check(cve_id, api_key, kev_check, cvss_version):
     """
     Function collects VulnCheck NVD2 Data
     """
@@ -206,8 +212,14 @@ def vulncheck_check(cve_id, api_key, kev_check):
 
                 cpe = unique_cve.get("configurations", [{}])[0].get("nodes", [{}])[0].get("cpeMatch", [{}])[0].get("criteria", 'cpe:2.3:::::::::::')
 
+                versions = ["cvssMetricV31", "cvssMetricV30", "cvssMetricV2"]
+
+                if cvss_version == 4:
+                    versions = ["cvssMetricV40", "cvssMetricV31", "cvssMetricV30", "cvssMetricV2"]
+
                 metrics = unique_cve.get("metrics", {})
-                for version in ["cvssMetricV31", "cvssMetricV30", "cvssMetricV2"]:
+
+                for version in versions:
                     if version in metrics:
                         for metric in metrics[version]:
                             return {
@@ -381,7 +393,7 @@ def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_
 
 
 # Main function
-def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, save_output=None, api=None,
+def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, cvss_v, save_output=None, api=None,
            nvd_plus=None, vc_kev=None, results=None):
     """
     Main Function
@@ -389,18 +401,18 @@ def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, s
     try:
         kev_source = 'CISA'
         if vc_kev:
-            cve_result = vulncheck_check(cve_id, api, vc_kev)
+            cve_result = vulncheck_check(cve_id, api, vc_kev, cvss_v)
             # exploited = vulncheck_kev(cve_id, api)[0]
             exploited = cve_result.get('cisa_kev')
             kev_source = 'VULNCHECK'
         elif nvd_plus:
-            cve_result = vulncheck_check(cve_id, api, vc_kev)
-            exploited = cve_result.get("cisa_kevs")
+            cve_result = vulncheck_check(cve_id, api, vc_kev, cvss_v)
+            exploited = cve_result.get("cisa_kev")
         else:
             if 'vulncheck' in str(api).lower():
                 click.echo("Wrong API Key provided (VulnCheck)")
                 exit()
-            cve_result = nist_check(cve_id, api)
+            cve_result = nist_check(cve_id, api, cvss_v)
             exploited = cve_result.get("cisa_kev")
         epss_result = epss_check(cve_id)
 
