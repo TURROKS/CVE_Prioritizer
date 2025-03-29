@@ -8,14 +8,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 <!-- insertion marker -->
 ## Unreleased
 
-<small>[Compare with latest](https://github.com/TURROKS/CVE_Prioritizer/compare/v1.8.3...HEAD)</small>
+<small>[Compare with latest](https://github.com/TURROKS/CVE_Prioritizer/compare/v1.9.0...HEAD)</small>
+
+<!-- insertion marker -->
+## [v1.9.0](https://github.com/TURROKS/CVE_Prioritizer/releases/tag/v1.9.0) - 2025-03-29
+
+<small>[Compare with v1.8.3](https://github.com/TURROKS/CVE_Prioritizer/compare/v1.8.3...v1.9.0)</small>
 
 ### Added
 
 - Added support for CVSS V4.0 ([cd3b94a](https://github.com/TURROKS/CVE_Prioritizer/commit/cd3b94a1f42a5dc436d167e33c3b59fb275beb0f) by Mario Rojas).
 - Added html report generator ([7fe0c6e](https://github.com/TURROKS/CVE_Prioritizer/commit/7fe0c6e6896cb01d4b04d3f8ac9e085b2c66558f) by Mario Rojas).
 
-<!-- insertion marker -->
 ## [v1.8.3](https://github.com/TURROKS/CVE_Prioritizer/releases/tag/v1.8.3) - 2025-03-06
 
 <small>[Compare with v1.8.2](https://github.com/TURROKS/CVE_Prioritizer/compare/v1.8.2...v1.8.3)</small>
