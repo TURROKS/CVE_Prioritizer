@@ -2,7 +2,7 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.9.0"
+__version__ = "1.10.1"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -17,7 +17,7 @@ VULNCHECK_KEV_BASE_URL = "https://api.vulncheck.com/v3/index/vulncheck-kev"
 # Visuals
 SIMPLE_HEADER = f"{'CVE-ID':<18}Priority"+"\n"+("-"*30)
 VERBOSE_HEADER = (f"{'CVE-ID':<18}{'PRIORITY':<13}{'EPSS':<9}{'CVSS':<6}{'VERSION':<10}{'SEVERITY':<10}{'KEV':<7}"
-                  f"{'RANSOMWARE':<12}{'VENDOR':<18}{'PRODUCT':<23}VECTOR")+"\n"+("-"*170)
+                  f"{'RANSOMWARE':<12}{'EXPLOITED':<11}{'VENDOR':<18}{'PRODUCT':<23}VECTOR")+"\n"+("-"*170)
 LOGO = r"""
 #    ______   ______                         
 #   / ___/ | / / __/                         
@@ -26,6 +26,6 @@ LOGO = r"""
 #    / _ \____(_)__  ____(_) /_(_)__ ___ ____
 #   / ___/ __/ / _ \/ __/ / __/ /_ // -_) __/
 #  /_/  /_/ /_/\___/_/ /_/\__/_//__/\__/_/   
-#  v1.9.0                          BY TURROKS
+#  v1.10.1                          BY TURROKS
                                                   
 """""
