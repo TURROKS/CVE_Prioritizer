@@ -8,9 +8,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 <!-- insertion marker -->
 ## Unreleased
 
-<small>[Compare with latest](https://github.com/TURROKS/CVE_Prioritizer/compare/v1.9.0...HEAD)</small>
+<small>[Compare with latest](https://github.com/TURROKS/CVE_Prioritizer/compare/v1.10.1...HEAD)</small>
 
 <!-- insertion marker -->
+## [v1.10.1](https://github.com/TURROKS/CVE_Prioritizer/releases/tag/v1.10.1) - 2025-07-20
+
+<small>[Compare with v1.9.0](https://github.com/TURROKS/CVE_Prioritizer/compare/v1.9.0...v1.10.1)</small>
+
+### Added
+
+- Added Exploit Maturity Checks + File export fixes ([f85d7e7](https://github.com/TURROKS/CVE_Prioritizer/commit/f85d7e72eaa7371778fb64a260888ed4ab04767f) by Mario Rojas).
+
 ## [v1.9.0](https://github.com/TURROKS/CVE_Prioritizer/releases/tag/v1.9.0) - 2025-03-29
 
 <small>[Compare with v1.8.3](https://github.com/TURROKS/CVE_Prioritizer/compare/v1.8.3...v1.9.0)</small>
