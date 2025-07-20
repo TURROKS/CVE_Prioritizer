@@ -2,7 +2,7 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.9.0"
+__version__ = "1.10.1"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -84,6 +84,7 @@ def nist_check(cve_id, api_key, cvss_version):
         if response_data.get("totalResults") > 0:
             for unique_cve in response_data.get("vulnerabilities"):
                 cisa_kev = unique_cve.get("cve").get("cisaExploitAdd", False)
+                exploit_maturity_attacked = False
                 ransomware = ''
                 if cisa_kev:
                     kev_data = requests.get(CISA_KEV_URL)
@@ -105,11 +106,15 @@ def nist_check(cve_id, api_key, cvss_version):
                 for version in versions:
                     if version in metrics:
                         for metric in metrics[version]:
+                            if cvss_version == 4:
+                                if "/E:A/" in metric.get("cvssData", {}).get("vectorString", ""):
+                                    exploit_maturity_attacked = True
                             return {
                                 "cvss_version": version.replace("cvssMetric", "CVSS "),
                                 "cvss_baseScore": float(metric.get("cvssData", {}).get("baseScore", 0)),
                                 "cvss_severity": metric.get("cvssData", {}).get("baseSeverity", ""),
                                 "cisa_kev": cisa_kev,
+                                "exploit_maturity_attacked": exploit_maturity_attacked,
                                 "ransomware": ransomware,
                                 "cpe": cpe,
                                 "vector": metric.get("cvssData", {}).get("vectorString", "")
@@ -123,6 +128,7 @@ def nist_check(cve_id, api_key, cvss_version):
                         "cvss_baseScore": "",
                         "cvss_severity": "",
                         "cisa_kev": "",
+                        "exploit_maturity_attacked": "",
                         "ransomware": "",
                         "cpe": "",
                         "vector": ""
@@ -135,6 +141,7 @@ def nist_check(cve_id, api_key, cvss_version):
                 "cvss_baseScore": "",
                 "cvss_severity": "",
                 "cisa_kev": "",
+                "exploit_maturity_attacked": "",
                 "ransomware": "",
                 "cpe": "",
                 "vector": ""
@@ -160,6 +167,7 @@ def nist_check(cve_id, api_key, cvss_version):
         "cvss_baseScore": "",
         "cvss_severity": "",
         "cisa_kev": "",
+        "exploit_maturity_attacked": "",
         "ransomware": "",
         "cpe": "",
         "vector": ""
@@ -181,6 +189,7 @@ def vulncheck_check(cve_id, api_key, kev_check, cvss_version):
                 "cvss_baseScore": "",
                 "cvss_severity": "",
                 "cisa_kev": "",
+                "exploit_maturity_attacked": "",
                 "ransomware": "",
                 "cpe": "",
                 "vector": ""
@@ -201,6 +210,7 @@ def vulncheck_check(cve_id, api_key, kev_check, cvss_version):
 
             for unique_cve in response_data.get("data", []):
                 vc_kev = False
+                exploit_maturity_attacked = False
                 vc_used_by_ransomware = ''
                 if kev_check:
                     vc_kev, vc_used_by_ransomware = vulncheck_kev(unique_cve.get('id'), api_key)
@@ -222,11 +232,15 @@ def vulncheck_check(cve_id, api_key, kev_check, cvss_version):
                 for version in versions:
                     if version in metrics:
                         for metric in metrics[version]:
+                            if cvss_version == 4:
+                                if "/E:A/" in metric.get("cvssData", {}).get("vectorString", ""):
+                                    exploit_maturity_attacked = True
                             return {
                                 "cvss_version": version.replace("cvssMetric", "CVSS "),
                                 "cvss_baseScore": float(metric.get("cvssData", {}).get("baseScore", 0)),
                                 "cvss_severity": metric.get("cvssData", {}).get("baseSeverity", ""),
                                 "cisa_kev": vc_kev,
+                                "exploit_maturity_attacked": exploit_maturity_attacked,
                                 "ransomware": vc_used_by_ransomware,
                                 "cpe": cpe,
                                 "vector": metric.get("cvssData", {}).get("vectorString", "")
@@ -240,6 +254,7 @@ def vulncheck_check(cve_id, api_key, kev_check, cvss_version):
                         "cvss_baseScore": "",
                         "cvss_severity": "",
                         "cisa_kev": "",
+                        "exploit_maturity_attacked": "",
                         "ransomware": "",
                         "cpe": "",
                         "vector": ""
@@ -252,6 +267,7 @@ def vulncheck_check(cve_id, api_key, kev_check, cvss_version):
                 "cvss_baseScore": "",
                 "cvss_severity": "",
                 "cisa_kev": "",
+                "exploit_maturity_attacked": "",
                 "ransomware": "",
                 "cpe": "",
                 "vector": ""
@@ -277,6 +293,7 @@ def vulncheck_check(cve_id, api_key, kev_check, cvss_version):
         "cvss_baseScore": "",
         "cvss_severity": "",
         "cisa_kev": "",
+        "exploit_maturity_attacked": "",
         "ransomware": "",
         "cpe": "",
         "vector": ""
@@ -337,6 +354,8 @@ def colored_print(priority):
         return colored(priority, 'yellow')
     elif priority == 'Priority 4':
         return colored(priority, 'green')
+    else:
+        return colored(priority, 'white')
 
 
 # Extract CVE product details
@@ -368,7 +387,7 @@ def truncate_string(input_string, max_length):
 
 # Function manages the outputs
 def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_version, cvss_severity, kev, ransomware,
-                    source, verbose, cpe, vector, no_color):
+                    exploited, source, verbose, cpe, vector, no_color):
     color_priority = colored_print(priority)
     vendor, product = parse_cpe(cpe)
 
@@ -376,11 +395,11 @@ def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_
         if no_color:
             click.echo(
                 f"{cve_id:<18}{color_priority:<22}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}"
-                f"{kev:<7}{ransomware:<12}{truncate_string(vendor, 15):<18}"
+                f"{kev:<7}{ransomware:<12}{exploited:<11}{truncate_string(vendor, 15):<18}"
                 f"{truncate_string(product, 20):<23}{vector}")
         else:
             click.echo(f"{cve_id:<18}{priority:<13}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}"
-                       f"{kev:<7}{ransomware:<12}{truncate_string(vendor, 15):<18}"
+                       f"{kev:<7}{ransomware:<12}{exploited:<11}{truncate_string(vendor, 15):<18}"
                        f"{truncate_string(product, 20):<23}{vector}")
     else:
         if no_color:
@@ -389,7 +408,7 @@ def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_
             click.echo(f"{cve_id:<18}{priority:<13}")
     if working_file:
         working_file.write(f"{cve_id},{priority},{epss},{cvss_base_score},{cvss_version},{cvss_severity},"
-                           f"{kev},{ransomware},{source},{cpe},{vendor},{product},{vector}\n")
+                           f"{kev},{ransomware},{exploited},{source},{cpe},{vendor},{product},{vector}\n")
 
 
 # Main function
@@ -404,16 +423,19 @@ def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, c
             cve_result = vulncheck_check(cve_id, api, vc_kev, cvss_v)
             # exploited = vulncheck_kev(cve_id, api)[0]
             exploited = cve_result.get('cisa_kev')
+            exploit_maturity_attacked = cve_result.get('exploit_maturity_attacked')
             kev_source = 'VULNCHECK'
         elif nvd_plus:
             cve_result = vulncheck_check(cve_id, api, vc_kev, cvss_v)
             exploited = cve_result.get("cisa_kev")
+            exploit_maturity_attacked = cve_result.get('exploit_maturity_attacked')
         else:
             if 'vulncheck' in str(api).lower():
                 click.echo("Wrong API Key provided (VulnCheck)")
                 exit()
             cve_result = nist_check(cve_id, api, cvss_v)
             exploited = cve_result.get("cisa_kev")
+            exploit_maturity_attacked = cve_result.get('exploit_maturity_attacked')
         epss_result = epss_check(cve_id)
 
         try:
@@ -421,37 +443,54 @@ def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, c
                 ransomware = cve_result.get('ransomware')
                 print_and_write(save_output, cve_id, 'Priority 1+', epss_result.get('epss'),
                                 cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
-                                cve_result.get('cvss_severity'), 'TRUE', ransomware, kev_source, verbose_print,
-                                cve_result.get('cpe'), cve_result.get('vector'), colored_output)
+                                cve_result.get('cvss_severity'), 'TRUE', ransomware, exploit_maturity_attacked,
+                                kev_source, verbose_print, cve_result.get('cpe'), cve_result.get('vector'), colored_output)
+            elif exploit_maturity_attacked:
+                ransomware = cve_result.get('ransomware')
+                print_and_write(save_output, cve_id, 'Priority 1+', epss_result.get('epss'),
+                                cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
+                                cve_result.get('cvss_severity'), 'FALSE', ransomware, 'TRUE', kev_source,
+                                verbose_print, cve_result.get('cpe'), cve_result.get('vector'), colored_output)
             elif cve_result.get("cvss_baseScore") >= cvss_score:
                 if epss_result.get("epss") >= epss_score:
                     print_and_write(save_output, cve_id, 'Priority 1', epss_result.get('epss'),
                                     cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
-                                    cve_result.get('cvss_severity'), '', '', kev_source, verbose_print,
+                                    cve_result.get('cvss_severity'), '', '', '', kev_source, verbose_print,
                                     cve_result.get('cpe'), cve_result.get('vector'), colored_output)
                 else:
                     print_and_write(save_output, cve_id, 'Priority 2', epss_result.get('epss'),
                                     cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
-                                    cve_result.get('cvss_severity'), '', '', kev_source, verbose_print,
+                                    cve_result.get('cvss_severity'), '', '', '', kev_source, verbose_print,
                                     cve_result.get('cpe'), cve_result.get('vector'), colored_output)
             else:
                 if epss_result.get("epss") >= epss_score:
                     print_and_write(save_output, cve_id, 'Priority 3', epss_result.get('epss'),
                                     cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
-                                    cve_result.get('cvss_severity'), '', '', kev_source, verbose_print,
+                                    cve_result.get('cvss_severity'), '', '', '', kev_source, verbose_print,
                                     cve_result.get('cpe'), cve_result.get('vector'), colored_output)
                 else:
                     print_and_write(save_output, cve_id, 'Priority 4', epss_result.get('epss'),
                                     cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
-                                    cve_result.get('cvss_severity'), '', '', kev_source, verbose_print,
+                                    cve_result.get('cvss_severity'), '', '', '', kev_source, verbose_print,
                                     cve_result.get('cpe'), cve_result.get('vector'), colored_output)
             if results is not None:
+
+                # Calculate priority based on the results
+                if exploited or exploit_maturity_attacked:
+                    priority = 'P1+'
+                elif cve_result.get("cvss_baseScore") >= cvss_score and epss_result.get("epss") >= epss_score:
+                    priority = 'P1'
+                elif cve_result.get("cvss_baseScore") >= cvss_score and epss_result.get("epss") < epss_score:
+                    priority = 'P2'
+                elif cve_result.get("cvss_baseScore") < cvss_score and epss_result.get("epss") >= epss_score:
+                    priority = 'P3'
+                else:
+                    priority = 'P4'
+
+
                 results.append({
                     'cve_id': cve_id,
-                    'priority': 'P1+' if exploited else 'P1' if cve_result.get(
-                        "cvss_baseScore") >= cvss_score and epss_result.get(
-                        "epss") >= epss_score else 'P2' if epss_result.get(
-                        "epss") < epss_score else 'P3' if epss_result.get("epss") >= epss_score else 'P4',
+                    'priority': priority,
                     'epss': epss_result.get('epss'),
                     'cvss_base_score': cve_result.get('cvss_baseScore'),
                     'cvss_version': cve_result.get('cvss_version'),
