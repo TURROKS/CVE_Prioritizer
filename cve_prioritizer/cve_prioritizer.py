@@ -41,12 +41,15 @@ Throttle_msg = ''
 @click.option('-sa', '--set-api', is_flag=True, help='Save API keys')
 @click.option('-vc', '--vulncheck', is_flag=True, help='Use NVD++ - Requires VulnCheck API')
 @click.option('-vck', '--vulncheck_kev', is_flag=True, help='Use Vulncheck KEV - Requires VulnCheck API')
+@click.option('--cvelistv5', is_flag=True, help='Use CVE List V5 (cvelistV5) as source')
+@click.option('--cvelist-path', type=click.Path(exists=True, file_okay=False), required=False,
+              help='Local path to cvelistV5 mirror for offline/fast lookups')
 @click.option('--nessus', is_flag=True, help='Parse Nessus file')
 @click.option('--openvas', is_flag=True, help='Parse OpenVAS file')
 @click.option('--report', type=click.Choice(['html', 'pdf']), help='Generate a report in HTML or PDF format')
 @click.option('--cvss-version', type=int, default=3, help='Preferred CVSS version (3 or 4)')
 def main(api, cve, epss, file, cvss, output, threads, verbose, list, no_color, set_api, vulncheck, vulncheck_kev,
-         json_file, nessus, openvas, report, cvss_version):
+         json_file, nessus, openvas, report, cvss_version, cvelistv5, cvelist_path):
 
     # Global Arguments
     color_enabled = not no_color
@@ -89,7 +92,7 @@ def main(api, cve, epss, file, cvss, output, threads, verbose, list, no_color, s
         else:
             cve_list = [line.rstrip() for line in file]
 
-    if not api and not os.getenv('NIST_API') and not vulncheck:
+    if not api and not os.getenv('NIST_API') and not vulncheck and not cvelistv5:
         if len(cve_list) > 75:
             throttle_msg = 'Large number of CVEs detected, requests will be throttle to avoid API issues'
             faded_text = fade.greenblue(LOGO)
@@ -118,13 +121,15 @@ def main(api, cve, epss, file, cvss, output, threads, verbose, list, no_color, s
         elif (vulncheck or vulncheck_kev) and not os.getenv('VULNCHECK_API') and not api:
             click.echo("VulnCheck requires an API key")
             exit()
+        elif cvelistv5:
+            throttle = 0.1
         if not re.match(r'(CVE|cve-\d{4}-\d+$)', cve):
             click.echo(f'{cve} Error: CVEs should be provided in the standard format CVE-0000-0000*')
         else:
             sem.acquire()
             t = threading.Thread(target=worker, args=(cve.upper().strip(), cvss_threshold, epss_threshold, verbose,
                                                       sem, color_enabled, cvss_version, output, api, vulncheck,
-                                                      vulncheck_kev, results))
+                                                      vulncheck_kev, results, cvelistv5, cvelist_path))
             threads.append(t)
             t.start()
             time.sleep(throttle)

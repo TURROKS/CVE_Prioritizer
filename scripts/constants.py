@@ -13,6 +13,7 @@ NIST_BASE_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 NUCLEI_BASE_URL = "https://raw.githubusercontent.com/projectdiscovery/nuclei-templates/main/cves.json"
 VULNCHECK_BASE_URL = "https://api.vulncheck.com/v3/index/nist-nvd2"
 VULNCHECK_KEV_BASE_URL = "https://api.vulncheck.com/v3/index/vulncheck-kev"
+CVELIST_RAW_BASE = "https://raw.githubusercontent.com/CVEProject/cvelistV5/main/cves"
 
 # Visuals
 SIMPLE_HEADER = f"{'CVE-ID':<18}Priority"+"\n"+("-"*30)
