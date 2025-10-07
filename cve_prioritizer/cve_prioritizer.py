@@ -6,12 +6,12 @@ __version__ = "1.10.1"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
+import fade
 import json
 import os
 import re
 import threading
 import time
-from email.policy import default
 from threading import Semaphore
 
 import click
@@ -92,14 +92,17 @@ def main(api, cve, epss, file, cvss, output, threads, verbose, list, no_color, s
     if not api and not os.getenv('NIST_API') and not vulncheck:
         if len(cve_list) > 75:
             throttle_msg = 'Large number of CVEs detected, requests will be throttle to avoid API issues'
-            click.echo(LOGO + throttle_msg + '\n' +
+            faded_text = fade.greenblue(LOGO)
+            click.echo(faded_text + throttle_msg + '\n' +
                        'Warning: Using this tool without specifying a NIST API may result in errors'
                        + '\n\n' + header)
         else:
-            click.echo(LOGO + 'Warning: Using this tool without specifying a NIST API may result in errors'
+            faded_text = fade.greenblue(LOGO)
+            click.echo(faded_text + 'Warning: Using this tool without specifying a NIST API may result in errors'
                        + '\n\n' + header)
     else:
-        click.echo(LOGO + header)
+        faded_text = fade.greenblue(LOGO)
+        click.echo(faded_text + header)
 
     if output:
         output.write("cve_id,priority,epss,cvss,cvss_version,cvss_severity,kev,ransomware,exploited,kev_source,cpe,vendor,"
