@@ -6,6 +6,7 @@ __version__ = "1.10.1"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
+import json
 import logging
 import os
 import re
@@ -13,7 +14,7 @@ import requests
 import click
 from dotenv import load_dotenv
 from termcolor import colored
-from scripts.constants import EPSS_URL, NIST_BASE_URL, VULNCHECK_BASE_URL, VULNCHECK_KEV_BASE_URL, CISA_KEV_URL
+from scripts.constants import EPSS_URL, NIST_BASE_URL, VULNCHECK_BASE_URL, VULNCHECK_KEV_BASE_URL, CISA_KEV_URL, CVELIST_RAW_BASE
 import xml.etree.ElementTree as ET
 
 load_dotenv()
@@ -340,6 +341,140 @@ def vulncheck_kev(cve_id, api_key):
         return None, None
 
 
+def _cvelist_path_for_cve(cve_id):
+    try:
+        parts = cve_id.split('-')
+        year = parts[1]
+        number = parts[2]
+        num_int = int(number)
+        if num_int < 1000:
+            block = '0xxx'
+        else:
+            block = f"{str(num_int)[:-3]}xxx"
+        return year, block
+    except Exception:
+        return None, None
+
+
+def cvelist_check(cve_id, local_base_path=None):
+    """
+    Fetch minimal fields from CVEProject/cvelistV5 JSON (CVE JSON 5.x).
+    Supports online raw fetch or local mirror lookup.
+    """
+    try:
+        year, block = _cvelist_path_for_cve(cve_id)
+        if not year:
+            return {
+                "cvss_version": "",
+                "cvss_baseScore": "",
+                "cvss_severity": "",
+                "cisa_kev": "",
+                "exploit_maturity_attacked": "",
+                "ransomware": "",
+                "cpe": "",
+                "vector": ""
+            }
+
+        if local_base_path:
+            file_path = os.path.join(local_base_path, 'cves', year, f"{block}", f"CVE-{year}-{cve_id.split('-')[2]}.json")
+            if not os.path.exists(file_path):
+                return {
+                    "cvss_version": "",
+                    "cvss_baseScore": "",
+                    "cvss_severity": "",
+                    "cisa_kev": "",
+                    "exploit_maturity_attacked": "",
+                    "ransomware": "",
+                    "cpe": "",
+                    "vector": ""
+                }
+            with open(file_path, 'r') as f:
+                data = json.load(f)
+        else:
+            url = f"{CVELIST_RAW_BASE}/{year}/{block}/CVE-{year}-{cve_id.split('-')[2]}.json"
+            resp = requests.get(url)
+            if resp.status_code != 200:
+                click.echo(f"{cve_id:<18}Not Found in CVE List V5.")
+                logger.warning(f"{cve_id} - Not Found in CVE List V5.")
+                return {
+                    "cvss_version": "",
+                    "cvss_baseScore": "",
+                    "cvss_severity": "",
+                    "cisa_kev": "",
+                    "exploit_maturity_attacked": "",
+                    "ransomware": "",
+                    "cpe": "",
+                    "vector": ""
+                }
+            data = resp.json()
+
+        # Extract minimal fields from JSON 5.x containers
+        containers = data.get('containers', {})
+
+        # CNA metrics (cvssData) can be under metrics with version-specific keys or unified in JSON 5; handle common cases
+        metrics = containers.get('cna', {}).get('metrics', [])
+        cvss_version = ""
+        cvss_score = ""
+        cvss_severity = ""
+        vector = ""
+        for metric in metrics:
+            # JSON 5.x may have a 'cvssV3_1', 'cvssV4_0', or 'cvssV2_0' object
+            for key in ['cvssV4_0', 'cvssV3_1', 'cvssV3_0', 'cvssV2_0']:
+                if key in metric:
+                    m = metric[key]
+                    cvss_version = key.replace('_', ' ').upper().replace('CVSS', 'CVSS ')
+                    cvss_score = float(m.get('baseScore', 0)) if isinstance(m.get('baseScore', 0), (int, float)) else 0
+                    cvss_severity = m.get('baseSeverity', '')
+                    vector = m.get('vectorString', '')
+                    break
+            if cvss_version:
+                break
+
+        # CPE-like affected; JSON5 uses affected products; we try to synthesize a CPE-ish string from vendor/product where possible
+        affected = containers.get('cna', {}).get('affected', [])
+        vendor = ''
+        product = ''
+        if affected:
+            a0 = affected[0]
+            vendor = (a0.get('vendor', '') or '').lower()
+            product = (a0.get('product', '') or '').lower()
+        cpe = f"cpe:2.3::{vendor}:{product}::::::::"  # placeholder consistent with existing code
+
+        # ADP CISA: KEV and possible SSVC; we set cisa_kev when present
+        cisa_kev = False
+        adp = containers.get('adp', [])
+        for entry in adp:
+            for metric in entry.get('metrics', []):
+                if metric.get('other', '').get('type', '') == 'kev':
+                    cisa_kev = True
+                    # Some records embed ssvc decision tree; we do not consume it yet
+                    break
+
+        # No explicit exploit maturity in JSON; return False; ransomware unknown
+        return {
+            "cvss_version": cvss_version,
+            "cvss_baseScore": cvss_score if cvss_score != "" else 0,
+            "cvss_severity": cvss_severity,
+            "cisa_kev": cisa_kev,
+            "exploit_maturity_attacked": False,
+            "ransomware": '',
+            "cpe": cpe,
+            "vector": vector
+        }
+    except Exception as e:
+        logger.error(f"{cve_id} - Error processing cvelistV5: {e}")
+        return {
+            "cvss_version": "",
+            "cvss_baseScore": "",
+            "cvss_severity": "",
+            "cisa_kev": "",
+            "exploit_maturity_attacked": "",
+            "ransomware": "",
+            "cpe": "",
+            "vector": ""
+        }
+
+
 def colored_print(priority):
     """
     Function used to handle colored print
@@ -413,13 +548,18 @@ def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_
 
 # Main function
 def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, cvss_v, save_output=None, api=None,
-           nvd_plus=None, vc_kev=None, results=None):
+           nvd_plus=None, vc_kev=None, results=None, use_cvelist=False, cvelist_path=None):
     """
     Main Function
     """
     try:
         kev_source = 'CISA'
-        if vc_kev:
+        if use_cvelist:
+            cve_result = cvelist_check(cve_id, cvelist_path)
+            exploited = cve_result.get('cisa_kev')
+            exploit_maturity_attacked = cve_result.get('exploit_maturity_attacked')
+            kev_source = 'CVE LIST V5'
+        elif vc_kev:
             cve_result = vulncheck_check(cve_id, api, vc_kev, cvss_v)
             # exploited = vulncheck_kev(cve_id, api)[0]
             exploited = cve_result.get('cisa_kev')
