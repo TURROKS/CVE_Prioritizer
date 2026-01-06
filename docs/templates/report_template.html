@@ -124,6 +124,7 @@
                 <th>CVE ID</th>
                 <th>CVSS</th>
                 <th>EPSS</th>
+                <th>EPSS Percentile</th>
                 <th>KEV</th>
                 <th>KEV Source</th>
                 <th>Vendor</th>
@@ -137,6 +138,7 @@
                 <td>{{ cve.cve_id }}</td>
                 <td>{{ cve.cvss_base_score }}</td>
                 <td>{{ cve.epss }}</td>
+                <td>{{ "%.4f"|format(cve.epss_percentile) if cve.epss_percentile is not none else "N/A" }}</td>
                 <td class="{{ 'kev-true' if cve.kev == 'TRUE' else 'kev-false' }}">
                     {{ '✅' if cve.kev == 'TRUE' else '—' }}
                 </td>

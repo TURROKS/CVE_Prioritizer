@@ -2,7 +2,7 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.10.1"
+__version__ = "1.10.2"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -43,7 +43,7 @@ def epss_check(cve_id):
         if response_data.get("total") > 0:
             for cve in response_data.get("data"):
                 results = {"epss": float(cve.get("epss")),
-                           "percentile": int(float(cve.get("percentile")) * 100)}
+                           "percentile": float(cve.get("percentile"))}
                 return results
         else:
             logger.warning(f"{cve_id} - Not Found in EPSS.")
@@ -521,19 +521,23 @@ def truncate_string(input_string, max_length):
 
 
 # Function manages the outputs
-def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_version, cvss_severity, kev, ransomware,
+def print_and_write(working_file, cve_id, priority, epss, epss_percentile, cvss_base_score, cvss_version, cvss_severity, kev, ransomware,
                     exploited, source, verbose, cpe, vector, no_color):
     color_priority = colored_print(priority)
     vendor, product = parse_cpe(cpe)
+    
+    # Format percentile for display (4 decimal places, handle None)
+    percentile_str = f"{epss_percentile:.4f}" if epss_percentile is not None else "N/A"
+    percentile_display = percentile_str[:12]  # Limit to 12 chars to match column width
 
     if verbose:
         if no_color:
             click.echo(
-                f"{cve_id:<18}{color_priority:<22}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}"
+                f"{cve_id:<18}{color_priority:<22}{epss:<9}{percentile_display:<12}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}"
                 f"{kev:<7}{ransomware:<12}{exploited:<11}{truncate_string(vendor, 15):<18}"
                 f"{truncate_string(product, 20):<23}{vector}")
         else:
-            click.echo(f"{cve_id:<18}{priority:<13}{epss:<9}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}"
+            click.echo(f"{cve_id:<18}{priority:<13}{epss:<9}{percentile_display:<12}{cvss_base_score:<6}{cvss_version:<10}{cvss_severity:<10}"
                        f"{kev:<7}{ransomware:<12}{exploited:<11}{truncate_string(vendor, 15):<18}"
                        f"{truncate_string(product, 20):<23}{vector}")
     else:
@@ -542,7 +546,8 @@ def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_
         else:
             click.echo(f"{cve_id:<18}{priority:<13}")
     if working_file:
-        working_file.write(f"{cve_id},{priority},{epss},{cvss_base_score},{cvss_version},{cvss_severity},"
+        percentile_csv = epss_percentile if epss_percentile is not None else ""
+        working_file.write(f"{cve_id},{priority},{epss},{percentile_csv},{cvss_base_score},{cvss_version},{cvss_severity},"
                            f"{kev},{ransomware},{exploited},{source},{cpe},{vendor},{product},{vector}\n")
 
 
@@ -581,35 +586,35 @@ def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, c
         try:
             if exploited:
                 ransomware = cve_result.get('ransomware')
-                print_and_write(save_output, cve_id, 'Priority 1+', epss_result.get('epss'),
+                print_and_write(save_output, cve_id, 'Priority 1+', epss_result.get('epss'), epss_result.get('percentile'),
                                 cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
                                 cve_result.get('cvss_severity'), 'TRUE', ransomware, exploit_maturity_attacked,
                                 kev_source, verbose_print, cve_result.get('cpe'), cve_result.get('vector'), colored_output)
             elif exploit_maturity_attacked:
                 ransomware = cve_result.get('ransomware')
-                print_and_write(save_output, cve_id, 'Priority 1+', epss_result.get('epss'),
+                print_and_write(save_output, cve_id, 'Priority 1+', epss_result.get('epss'), epss_result.get('percentile'),
                                 cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
                                 cve_result.get('cvss_severity'), 'FALSE', ransomware, 'TRUE', kev_source,
                                 verbose_print, cve_result.get('cpe'), cve_result.get('vector'), colored_output)
             elif cve_result.get("cvss_baseScore") >= cvss_score:
                 if epss_result.get("epss") >= epss_score:
-                    print_and_write(save_output, cve_id, 'Priority 1', epss_result.get('epss'),
+                    print_and_write(save_output, cve_id, 'Priority 1', epss_result.get('epss'), epss_result.get('percentile'),
                                     cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
                                     cve_result.get('cvss_severity'), '', '', '', kev_source, verbose_print,
                                     cve_result.get('cpe'), cve_result.get('vector'), colored_output)
                 else:
-                    print_and_write(save_output, cve_id, 'Priority 2', epss_result.get('epss'),
+                    print_and_write(save_output, cve_id, 'Priority 2', epss_result.get('epss'), epss_result.get('percentile'),
                                     cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
                                     cve_result.get('cvss_severity'), '', '', '', kev_source, verbose_print,
                                     cve_result.get('cpe'), cve_result.get('vector'), colored_output)
             else:
                 if epss_result.get("epss") >= epss_score:
-                    print_and_write(save_output, cve_id, 'Priority 3', epss_result.get('epss'),
+                    print_and_write(save_output, cve_id, 'Priority 3', epss_result.get('epss'), epss_result.get('percentile'),
                                     cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
                                     cve_result.get('cvss_severity'), '', '', '', kev_source, verbose_print,
                                     cve_result.get('cpe'), cve_result.get('vector'), colored_output)
                 else:
-                    print_and_write(save_output, cve_id, 'Priority 4', epss_result.get('epss'),
+                    print_and_write(save_output, cve_id, 'Priority 4', epss_result.get('epss'), epss_result.get('percentile'),
                                     cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
                                     cve_result.get('cvss_severity'), '', '', '', kev_source, verbose_print,
                                     cve_result.get('cpe'), cve_result.get('vector'), colored_output)
@@ -632,6 +637,7 @@ def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, c
                     'cve_id': cve_id,
                     'priority': priority,
                     'epss': epss_result.get('epss'),
+                    'epss_percentile': epss_result.get('percentile'),
                     'cvss_base_score': cve_result.get('cvss_baseScore'),
                     'cvss_version': cve_result.get('cvss_version'),
                     'cvss_severity': cve_result.get('cvss_severity'),

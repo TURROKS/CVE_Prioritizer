@@ -2,7 +2,7 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.10.1"
+__version__ = "1.10.2"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -108,7 +108,7 @@ def main(api, cve, epss, file, cvss, output, threads, verbose, list, no_color, s
         click.echo(faded_text + header)
 
     if output:
-        output.write("cve_id,priority,epss,cvss,cvss_version,cvss_severity,kev,ransomware,exploited,kev_source,cpe,vendor,"
+        output.write("cve_id,priority,epss,epss_percentile,cvss,cvss_version,cvss_severity,kev,ransomware,exploited,kev_source,cpe,vendor,"
                      "product,vector" + "\n")
 
     results = []

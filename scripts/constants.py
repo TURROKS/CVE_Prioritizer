@@ -2,7 +2,7 @@
 
 __author__ = "Mario Rojas"
 __license__ = "BSD 3-clause"
-__version__ = "1.10.1"
+__version__ = "1.10.2"
 __maintainer__ = "Mario Rojas"
 __status__ = "Production"
 
@@ -17,8 +17,8 @@ CVELIST_RAW_BASE = "https://raw.githubusercontent.com/CVEProject/cvelistV5/main/
 
 # Visuals
 SIMPLE_HEADER = f"{'CVE-ID':<18}Priority"+"\n"+("-"*30)
-VERBOSE_HEADER = (f"{'CVE-ID':<18}{'PRIORITY':<13}{'EPSS':<9}{'CVSS':<6}{'VERSION':<10}{'SEVERITY':<10}{'KEV':<7}"
-                  f"{'RANSOMWARE':<12}{'EXPLOITED':<11}{'VENDOR':<18}{'PRODUCT':<23}VECTOR")+"\n"+("-"*170)
+VERBOSE_HEADER = (f"{'CVE-ID':<18}{'PRIORITY':<13}{'EPSS':<9}{'PERCENTILE':<12}{'CVSS':<6}{'VERSION':<10}{'SEVERITY':<10}{'KEV':<7}"
+                  f"{'RANSOMWARE':<12}{'EXPLOITED':<11}{'VENDOR':<18}{'PRODUCT':<23}VECTOR")+"\n"+("-"*182)
 LOGO = r"""
 ░█▀▀░█░█░█▀▀                                
 ░█░░░▀▄▀░█▀▀                                
@@ -26,6 +26,6 @@ LOGO = r"""
 ░█▀█░█▀▄░▀█▀░█▀█░█▀▄░▀█▀░▀█▀░▀█▀░▀▀█░█▀▀░█▀▄
 ░█▀▀░█▀▄░░█░░█░█░█▀▄░░█░░░█░░░█░░▄▀░░█▀▀░█▀▄
 ░▀░░░▀░▀░▀▀▀░▀▀▀░▀░▀░▀▀▀░░▀░░▀▀▀░▀▀▀░▀▀▀░▀░▀ 
-v1.10.1                          BY TURROKS
+v1.10.2                          BY TURROKS
                                                   
 """""
